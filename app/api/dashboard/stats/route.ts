@@ -7,7 +7,10 @@ export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
 
-    if (!session || (session.user.role !== "admin" && session.user.role !== "viewer")) {
+    console.log('Session in dashboard stats:', session);
+
+    if (!session || (session.user.role !== "ADMIN" && session.user.role !== "VIEWER")) {
+      console.log('Access denied. Role:', session?.user?.role);
       return NextResponse.json(
         { error: 'ไม่ได้รับอนุญาต' },
         { status: 401 }

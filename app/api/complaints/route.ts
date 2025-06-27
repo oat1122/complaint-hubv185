@@ -125,26 +125,29 @@ export async function POST(request: NextRequest) {
 
 export async function GET(request: NextRequest) {
   try {
-    const url = new URL(request.url);
-    const trackingId = url.searchParams.get('trackingId');
+    const { searchParams } = new URL(request.url);
+    const trackingId = searchParams.get('trackingId');
 
     if (!trackingId) {
       return NextResponse.json(
-        { error: 'กรุณาระบุรหัสติดตาม' },
+        { error: 'กรุณาระบุหมายเลขติดตาม' },
         { status: 400 }
       );
     }
 
     const complaint = await prisma.complaint.findUnique({
-      where: { trackingId },
+      where: {
+        trackingId: trackingId,
+      },
       include: {
         attachments: {
           select: {
             id: true,
             filename: true,
+            fileType: true,
+            fileSize: true,
             url: true,
-            size: true,
-            mimetype: true,
+            createdAt: true,
           },
         },
       },
@@ -152,20 +155,29 @@ export async function GET(request: NextRequest) {
 
     if (!complaint) {
       return NextResponse.json(
-        { error: 'ไม่พบเรื่องร้องเรียนด้วยรหัสนี้' },
+        { error: 'ไม่พบข้อร้องเรียนที่มีหมายเลขติดตามนี้' },
         { status: 404 }
       );
     }
 
+    // Return complaint data without sensitive information
     return NextResponse.json({
-      success: true,
-      complaint,
+      id: complaint.id,
+      title: complaint.title,
+      description: complaint.description,
+      category: complaint.category,
+      priority: complaint.priority,
+      status: complaint.status,
+      trackingId: complaint.trackingId,
+      createdAt: complaint.createdAt,
+      updatedAt: complaint.updatedAt,
+      attachments: complaint.attachments,
     });
 
   } catch (error) {
     console.error('Error fetching complaint:', error);
     return NextResponse.json(
-      { error: 'เกิดข้อผิดพลาดในการค้นหาเรื่องร้องเรียน' },
+      { error: 'เกิดข้อผิดพลาดในการค้นหาข้อมูล' },
       { status: 500 }
     );
   }

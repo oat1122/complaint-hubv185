@@ -28,14 +28,22 @@ export default function SignInPage() {
         redirect: false,
       });
 
+      console.log("Sign in result:", result);
+
       if (result?.error) {
         setError("อีเมลหรือรหัสผ่านไม่ถูกต้อง");
         toast.error("เข้าสู่ระบบไม่สำเร็จ");
-      } else {
+      } else if (result?.ok) {
         toast.success("เข้าสู่ระบบสำเร็จ");
-        router.push("/dashboard");
+        
+        // Wait a bit then redirect
+        setTimeout(() => {
+          router.push("/dashboard");
+          router.refresh();
+        }, 500);
       }
     } catch (error) {
+      console.error("Sign in error:", error);
       setError("เกิดข้อผิดพลาดในการเข้าสู่ระบบ");
       toast.error("เกิดข้อผิดพลาด");
     } finally {
@@ -120,8 +128,8 @@ export default function SignInPage() {
           <CardContent className="p-4">
             <h3 className="font-medium text-yellow-800 mb-2">บัญชีทดสอบ</h3>
             <div className="text-sm text-yellow-700 space-y-1">
-              <p><strong>Admin:</strong> admin@example.com / admin123</p>
-              <p><strong>Viewer:</strong> viewer@example.com / viewer123</p>
+              <p><strong>Admin:</strong> admin@oat.com / admin123</p>
+              <p><strong>Viewer:</strong> Pna@example.com / Pna123</p>
             </div>
           </CardContent>
         </Card>

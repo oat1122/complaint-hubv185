@@ -55,10 +55,20 @@ export default function DashboardPage() {
 
   const fetchStats = async () => {
     try {
-      const response = await fetch('/api/dashboard/stats');
+      console.log('Fetching dashboard stats...');
+      const response = await fetch('/api/dashboard/stats', {
+        credentials: 'include',
+      });
+      
+      console.log('Dashboard stats response:', response.status);
+      
       if (response.ok) {
         const data = await response.json();
+        console.log('Dashboard stats data:', data);
         setStats(data);
+      } else {
+        const errorData = await response.json();
+        console.error('Dashboard stats error:', errorData);
       }
     } catch (error) {
       console.error('Error fetching stats:', error);

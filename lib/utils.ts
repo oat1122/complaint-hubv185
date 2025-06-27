@@ -1,4 +1,10 @@
 import { COMPLAINT_CATEGORIES, PRIORITY_LEVELS, STATUS_LEVELS } from "@/lib/constants";
+import { type ClassValue, clsx } from "clsx";
+import { twMerge } from "tailwind-merge";
+
+export function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs));
+}
 
 export function generateTrackingId(): string {
   const timestamp = Date.now().toString(36);

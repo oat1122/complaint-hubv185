@@ -22,8 +22,8 @@ interface Complaint {
     id: string;
     filename: string;
     url: string;
-    size: number;
-    mimetype: string;
+    fileSize: number;
+    fileType: string;
   }>;
 }
 
@@ -51,7 +51,7 @@ export default function TrackingPage() {
         throw new Error(data.error || "เกิดข้อผิดพลาด");
       }
 
-      setComplaint(data.complaint);
+      setComplaint(data);
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -192,7 +192,7 @@ export default function TrackingPage() {
                           <div>
                             <p className="text-sm font-medium">{attachment.filename}</p>
                             <p className="text-xs text-gray-500">
-                              {(attachment.size / 1024 / 1024).toFixed(2)} MB
+                              {(attachment.fileSize / 1024 / 1024).toFixed(2)} MB
                             </p>
                           </div>
                         </div>
@@ -224,7 +224,7 @@ export default function TrackingPage() {
                     </div>
                   </div>
                   
-                  {complaint.status !== "new" && (
+                  {complaint.status !== "NEW" && (
                     <div className="flex items-center">
                       <div className="w-4 h-4 rounded-full bg-yellow-600 mr-3"></div>
                       <div>
@@ -233,7 +233,7 @@ export default function TrackingPage() {
                     </div>
                   )}
                   
-                  {(complaint.status === "resolved" || complaint.status === "closed") && (
+                  {(complaint.status === "RESOLVED" || complaint.status === "CLOSED") && (
                     <div className="flex items-center">
                       <div className="w-4 h-4 rounded-full bg-green-600 mr-3"></div>
                       <div>

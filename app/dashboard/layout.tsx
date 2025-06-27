@@ -16,16 +16,23 @@ export default function DashboardLayout({
   useEffect(() => {
     if (status === "loading") return; // Still loading
 
+    console.log("Dashboard layout - session:", session);
+    console.log("Dashboard layout - status:", status);
+
     if (!session) {
+      console.log("No session, redirecting to signin");
       router.push("/auth/signin");
       return;
     }
 
     // Check if user has proper role
-    if (!session.user.role || (session.user.role !== "admin" && session.user.role !== "viewer")) {
+    if (!session.user.role || (session.user.role !== "ADMIN" && session.user.role !== "VIEWER")) {
+      console.log("Invalid role, redirecting to unauthorized. Role:", session.user.role);
       router.push("/unauthorized");
       return;
     }
+
+    console.log("Access granted for role:", session.user.role);
   }, [session, status, router]);
 
   if (status === "loading") {

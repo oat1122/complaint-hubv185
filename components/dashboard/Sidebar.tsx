@@ -65,7 +65,7 @@ export function Sidebar() {
           const isSettings = item.href.includes("settings");
           
           // Hide settings for non-admin users
-          if (isSettings && session?.user?.role !== "admin") {
+          if (isSettings && session?.user?.role !== "ADMIN") {
             return null;
           }
 

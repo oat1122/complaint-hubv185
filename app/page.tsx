@@ -42,21 +42,18 @@ export default function Home() {
           </p>
           
           {/* Features */}
-          <div className="grid md:grid-cols-3 gap-6 mb-12">
-            <div className="bg-white p-6 rounded-lg shadow-sm">
-              <Shield className="w-12 h-12 text-green-600 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold mb-2">ปลอดภัย 100%</h3>
-              <p className="text-gray-600">ไม่ต้องเปิดเผยตัวตน ข้อมูลของท่านจะถูกเก็บรักษาอย่างปลอดภัย</p>
-            </div>
-            <div className="bg-white p-6 rounded-lg shadow-sm">
-              <Clock className="w-12 h-12 text-blue-600 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold mb-2">รวดเร็ว</h3>
-              <p className="text-gray-600">ตอบกลับภายใน 3-5 วันทำการ พร้อมระบบติดตามสถานะ</p>
-            </div>
-            <div className="bg-white p-6 rounded-lg shadow-sm">
-              <MessageCircle className="w-12 h-12 text-purple-600 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold mb-2">ง่ายดาย</h3>
-              <p className="text-gray-600">กรอกฟอร์มง่ายๆ แนบไฟล์ได้ ได้รหัสติดตามทันที</p>
+          <div className="max-w-4xl mx-auto">
+            <div className="grid md:grid-cols-2 gap-6 mb-12">
+              <div className="bg-white p-6 rounded-lg shadow-sm">
+                <Shield className="w-12 h-12 text-green-600 mx-auto mb-4" />
+                <h3 className="text-lg font-semibold mb-2">ปลอดภัย 100%</h3>
+                <p className="text-gray-600">ไม่ต้องเปิดเผยตัวตน ข้อมูลของท่านจะถูกเก็บรักษาอย่างปลอดภัย</p>
+              </div>
+              <div className="bg-white p-6 rounded-lg shadow-sm">
+                <MessageCircle className="w-12 h-12 text-purple-600 mx-auto mb-4" />
+                <h3 className="text-lg font-semibold mb-2">ง่ายดาย</h3>
+                <p className="text-gray-600">กรอกฟอร์มง่ายๆ แนบไฟล์ได้ ได้รหัสติดตามทันที</p>
+              </div>
             </div>
           </div>
         </div>
