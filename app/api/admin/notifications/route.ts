@@ -1,0 +1,183 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth/next';
+import { authOptions } from '@/lib/auth';
+import { prisma } from '@/lib/prisma';
+
+export async function GET(request: NextRequest) {
+  try {
+    const session = await getServerSession(authOptions);
+
+    if (!session || (session.user.role !== "ADMIN" && session.user.role !== "VIEWER")) {
+      return NextResponse.json(
+        { error: 'ไม่ได้รับอนุญาต' },
+        { status: 401 }
+      );
+    }
+
+    const { searchParams } = new URL(request.url);
+    const page = parseInt(searchParams.get('page') || '1');
+    const limit = parseInt(searchParams.get('limit') || '20');
+    const unreadOnly = searchParams.get('unreadOnly') === 'true';
+
+    const skip = (page - 1) * limit;
+
+    // Build where clause
+    const where: any = {};
+    if (unreadOnly) {
+      where.read = false;
+    }
+
+    // Fetch notifications
+    const [notifications, totalCount, unreadCount] = await Promise.all([
+      prisma.notification.findMany({
+        where,
+        orderBy: {
+          createdAt: 'desc',
+        },
+        skip,
+        take: limit,
+      }),
+      prisma.notification.count({ where }),
+      prisma.notification.count({ where: { read: false } }),
+    ]);
+
+    // Get recent complaints for system alerts
+    const recentComplaints = await prisma.complaint.findMany({
+      where: {
+        createdAt: {
+          gte: new Date(Date.now() - 24 * 60 * 60 * 1000), // Last 24 hours
+        },
+      },
+      select: {
+        id: true,
+        title: true,
+        category: true,
+        priority: true,
+        status: true,
+        trackingId: true,
+        createdAt: true,
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+      take: 10,
+    });
+
+    // Generate system alerts
+    const systemAlerts = [];
+    
+    // High priority complaints
+    const highPriorityCount = recentComplaints.filter((c: any) => c.priority === 'HIGH' || c.priority === 'URGENT').length;
+    if (highPriorityCount > 0) {
+      systemAlerts.push({
+        id: 'high-priority-alert',
+        title: 'ข้อร้องเรียนความสำคัญสูง',
+        message: `มีข้อร้องเรียนความสำคัญสูง ${highPriorityCount} เรื่องในวันนี้`,
+        type: 'high_priority',
+        read: false,
+        createdAt: new Date(),
+      });
+    }
+
+    // Safety complaints
+    const safetyComplaints = recentComplaints.filter((c: any) => c.category === 'SAFETY').length;
+    if (safetyComplaints > 0) {
+      systemAlerts.push({
+        id: 'safety-alert',
+        title: 'แจ้งเตือนด้านความปลอดภัย',
+        message: `มีข้อร้องเรียนด้านความปลอดภัย ${safetyComplaints} เรื่องใหม่`,
+        type: 'safety',
+        read: false,
+        createdAt: new Date(),
+      });
+    }
+
+    const totalPages = Math.ceil(totalCount / limit);
+
+    return NextResponse.json({
+      notifications,
+      systemAlerts,
+      recentComplaints,
+      stats: {
+        totalCount,
+        unreadCount,
+        recentCount: recentComplaints.length,
+      },
+      pagination: {
+        page,
+        limit,
+        totalPages,
+        hasNext: page < totalPages,
+        hasPrev: page > 1,
+      },
+    });
+
+  } catch (error) {
+    console.error('Error fetching notifications:', error);
+    return NextResponse.json(
+      { error: 'เกิดข้อผิดพลาดในการดึงข้อมูลการแจ้งเตือน' },
+      { status: 500 }
+    );
+  }
+}
+
+// Mark notification as read
+export async function PATCH(request: NextRequest) {
+  try {
+    const session = await getServerSession(authOptions);
+
+    if (!session || (session.user.role !== "ADMIN" && session.user.role !== "VIEWER")) {
+      return NextResponse.json(
+        { error: 'ไม่ได้รับอนุญาต' },
+        { status: 401 }
+      );
+    }
+
+    const body = await request.json();
+    const { notificationId, markAllAsRead } = body;
+
+    if (markAllAsRead) {
+      // Mark all notifications as read
+      await prisma.notification.updateMany({
+        where: {
+          read: false,
+        },
+        data: {
+          read: true,
+        },
+      });
+
+      return NextResponse.json({
+        success: true,
+        message: 'อ่านการแจ้งเตือนทั้งหมดแล้ว',
+      });
+    } else if (notificationId) {
+      // Mark specific notification as read
+      await prisma.notification.update({
+        where: {
+          id: notificationId,
+        },
+        data: {
+          read: true,
+        },
+      });
+
+      return NextResponse.json({
+        success: true,
+        message: 'อ่านการแจ้งเตือนแล้ว',
+      });
+    } else {
+      return NextResponse.json(
+        { error: 'ข้อมูลไม่ครบถ้วน' },
+        { status: 400 }
+      );
+    }
+
+  } catch (error) {
+    console.error('Error updating notification:', error);
+    return NextResponse.json(
+      { error: 'เกิดข้อผิดพลาดในการอัพเดทการแจ้งเตือน' },
+      { status: 500 }
+    );
+  }
+}

@@ -1,0 +1,97 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Complaint {
+  id          String     @id @default(cuid())
+  title       String     @db.VarChar(255)
+  description String     @db.Text
+  category    Category   @default(OTHER)
+  priority    Priority   @default(MEDIUM)
+  trackingId  String     @unique @db.VarChar(20)
+  status      Status     @default(NEW)
+  attachments Attachment[]
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  @@map("complaints")
+}
+
+model Attachment {
+  id          String    @id @default(cuid())
+  filename    String    @db.VarChar(255)
+  url         String    @db.VarChar(500)
+  fileType    String    @db.VarChar(100)
+  fileSize    Int
+  complaintId String
+  complaint   Complaint @relation(fields: [complaintId], references: [id], onDelete: Cascade)
+  createdAt   DateTime  @default(now())
+
+  @@map("attachments")
+}
+
+model User {
+  id        String    @id @default(cuid())
+  email     String    @unique @db.VarChar(255)
+  password  String    @db.VarChar(255)
+  role      Role      @default(VIEWER)
+  isActive  Boolean   @default(true)
+  lastLogin DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@map("users")
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  title     String
+  message   String
+  type      String   @default("info")
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@map("notifications")
+}
+
+// Enums for better data integrity
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum Status {
+  NEW
+  IN_PROGRESS
+  RESOLVED
+  CLOSED
+  ARCHIVED
+}
+
+enum Role {
+  VIEWER
+  ADMIN
+}
+
+enum Category {
+  TECHNICAL           // เทคนิค
+  PERSONNEL           // บุคคล
+  ENVIRONMENT         // สภาพแวดล้อม
+  EQUIPMENT           // อุปกรณ์
+  SAFETY              // ความปลอดภัย
+  FINANCIAL           // การเงิน
+  STRUCTURE_SYSTEM    // โครงสร้างและระบบการทำงาน
+  WELFARE_SERVICES    // สวัสดิการและบริการ
+  PROJECT_IDEA        // เสนอโปรเจค-ไอเดีย
+  OTHER               // อื่นๆ
+}
