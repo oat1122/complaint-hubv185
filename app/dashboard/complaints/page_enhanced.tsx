@@ -26,10 +26,7 @@ import {
   AlertTriangle,
   Clock,
   CheckCircle,
-  Paperclip,
-  X,
-  User,
-  ExternalLink
+  Paperclip
 } from "lucide-react";
 import { formatDate, getPriorityColor, getStatusColor, getPriorityLabel, getStatusLabel } from "@/lib/utils";
 import { STATUS_LEVELS, PRIORITY_LEVELS, COMPLAINT_CATEGORIES } from "@/lib/constants";
@@ -43,19 +40,12 @@ interface Complaint {
   status: string;
   trackingId: string;
   createdAt: string;
-  updatedAt?: string;
   attachments: Array<{
     id: string;
     filename: string;
     url: string;
     fileSize: number;
     fileType: string;
-  }>;
-  responses?: Array<{
-    id: string;
-    message: string;
-    createdAt: string;
-    isAdmin: boolean;
   }>;
 }
 
@@ -71,9 +61,18 @@ interface FilterState {
 // Loading Skeleton Component
 function LoadingSkeleton() {
   return (
-    <div className="space-y-4 animate-pulse">
+    <div className="space-y-4">
       {[1, 2, 3, 4, 5].map((i) => (
-        <div key={i} className="bg-gray-200 dark:bg-gray-700 h-20 rounded-lg"></div>
+        <div key={i} className="animate-pulse">
+          <div className="flex space-x-4 p-4">
+            <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-20"></div>
+            <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-48"></div>
+            <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-24"></div>
+            <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-20"></div>
+            <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-16"></div>
+            <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-24"></div>
+          </div>
+        </div>
       ))}
     </div>
   );
@@ -82,11 +81,9 @@ function LoadingSkeleton() {
 // Empty State Component
 function EmptyState() {
   return (
-    <div className="text-center py-16">
-      <div className="w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-4">
-        <MessageSquare className="w-8 h-8 text-gray-400" />
-      </div>
-      <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+    <div className="text-center py-12">
+      <MessageSquare className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+      <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
         ไม่พบเรื่องร้องเรียน
       </h3>
       <p className="text-gray-500 dark:text-gray-400">
@@ -103,168 +100,81 @@ function ComplaintDetailModal({
   onUpdateStatus 
 }: { 
   complaint: Complaint | null; 
-  onClose: () => void;
+  onClose: () => void; 
   onUpdateStatus: (id: string, status: string) => void;
 }) {
   if (!complaint) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fade-in-scale">
-      <Card className="max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col">
-        <CardHeader className="border-b border-gray-200 dark:border-gray-700">
-          <div className="flex items-start justify-between">
-            <div className="space-y-2">
-              <CardTitle className="text-xl">{complaint.title}</CardTitle>
-              <CardDescription className="flex items-center space-x-4">
-                <span className="flex items-center">
-                  <Hash className="w-4 h-4 mr-1" />
-                  {complaint.trackingId}
-                </span>
-                <span className="flex items-center">
-                  <Calendar className="w-4 h-4 mr-1" />
-                  {formatDate(new Date(complaint.createdAt))}
-                </span>
-              </CardDescription>
-            </div>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={onClose}
-              className="hover:bg-gray-100 dark:hover:bg-gray-800"
-            >
-              <X className="w-5 h-5" />
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-large max-w-4xl w-full max-h-[90vh] overflow-y-auto animate-fade-in-scale">
+        <div className="p-6 border-b border-gray-200 dark:border-gray-700">
+          <div className="flex items-center justify-between">
+            <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+              รายละเอียดเรื่องร้องเรียน
+            </h2>
+            <Button variant="ghost" size="sm" onClick={onClose}>
+              ✕
             </Button>
           </div>
-        </CardHeader>
-        
-        <CardContent className="flex-1 overflow-y-auto p-6 space-y-6">
-          {/* Status and Category Info */}
-          <div className="grid md:grid-cols-4 gap-4">
-            <div className="space-y-2">
-              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">ประเภท</p>
-              <CategoryBadge category={complaint.category} />
+        </div>
+        <div className="p-6">
+          <div className="space-y-4">
+            <div>
+              <label className="text-sm font-medium text-gray-600 dark:text-gray-400">รหัสติดตาม</label>
+              <p className="font-mono text-lg">{complaint.trackingId}</p>
             </div>
-            <div className="space-y-2">
-              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">ความสำคัญ</p>
-              <Badge className={getPriorityColor(complaint.priority)}>
-                {getPriorityLabel(complaint.priority)}
-              </Badge>
+            <div>
+              <label className="text-sm font-medium text-gray-600 dark:text-gray-400">หัวข้อ</label>
+              <p className="text-lg font-medium">{complaint.title}</p>
             </div>
-            <div className="space-y-2">
-              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">สถานะ</p>
-              <Select
-                value={complaint.status}
-                onValueChange={(value) => onUpdateStatus(complaint.id, value)}
-              >
-                <SelectTrigger className={`w-full ${getStatusColor(complaint.status)}`}>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {STATUS_LEVELS.map((status) => (
-                    <SelectItem key={status.value} value={status.value}>
-                      <div className="flex items-center space-x-2">
-                        {status.value === 'NEW' && <AlertTriangle className="w-4 h-4" />}
-                        {status.value === 'IN_PROGRESS' && <Clock className="w-4 h-4" />}
-                        {status.value === 'RESOLVED' && <CheckCircle className="w-4 h-4" />}
-                        <span>{status.label}</span>
-                      </div>
-                    </SelectItem>
+            <div>
+              <label className="text-sm font-medium text-gray-600 dark:text-gray-400">รายละเอียด</label>
+              <p className="text-gray-700 dark:text-gray-300">{complaint.description}</p>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <label className="text-sm font-medium text-gray-600 dark:text-gray-400">ประเภท</label>
+                <div className="mt-1">
+                  <CategoryBadge category={complaint.category} />
+                </div>
+              </div>
+              <div>
+                <label className="text-sm font-medium text-gray-600 dark:text-gray-400">ความสำคัญ</label>
+                <div className="mt-1">
+                  <Badge className={getPriorityColor(complaint.priority)}>
+                    {getPriorityLabel(complaint.priority)}
+                  </Badge>
+                </div>
+              </div>
+              <div>
+                <label className="text-sm font-medium text-gray-600 dark:text-gray-400">สถานะ</label>
+                <div className="mt-1">
+                  <Badge className={getStatusColor(complaint.status)}>
+                    {getStatusLabel(complaint.status)}
+                  </Badge>
+                </div>
+              </div>
+            </div>
+            {complaint.attachments.length > 0 && (
+              <div>
+                <label className="text-sm font-medium text-gray-600 dark:text-gray-400">ไฟล์แนบ</label>
+                <div className="mt-2 space-y-2">
+                  {complaint.attachments.map((attachment) => (
+                    <div key={attachment.id} className="flex items-center space-x-3 p-3 border rounded-lg">
+                      <Paperclip className="w-4 h-4" />
+                      <span className="flex-1">{attachment.filename}</span>
+                      <Button size="sm" variant="outline">
+                        ดาวน์โหลด
+                      </Button>
+                    </div>
                   ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">อัพเดทล่าสุด</p>
-              <p className="text-sm text-gray-700 dark:text-gray-300">
-                {complaint.updatedAt ? formatDate(new Date(complaint.updatedAt)) : 'ไม่มีข้อมูล'}
-              </p>
-            </div>
-          </div>
-
-          {/* Description */}
-          <div className="space-y-3">
-            <p className="text-sm font-medium text-gray-600 dark:text-gray-400">รายละเอียด</p>
-            <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg border">
-              <p className="whitespace-pre-line text-gray-900 dark:text-gray-100">
-                {complaint.description}
-              </p>
-            </div>
-          </div>
-
-          {/* Attachments */}
-          {complaint.attachments.length > 0 && (
-            <div className="space-y-3">
-              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                ไฟล์แนบ ({complaint.attachments.length})
-              </p>
-              <div className="grid gap-3">
-                {complaint.attachments.map((attachment) => (
-                  <div key={attachment.id} className="flex items-center justify-between bg-gray-50 dark:bg-gray-800 p-4 rounded-lg border hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
-                    <div className="flex items-center space-x-3">
-                      <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
-                        <FileText className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                          {attachment.filename}
-                        </p>
-                        <p className="text-xs text-gray-500 dark:text-gray-400">
-                          {(attachment.fileSize / 1024 / 1024).toFixed(2)} MB • {attachment.fileType}
-                        </p>
-                      </div>
-                    </div>
-                    <Button variant="outline" size="sm" asChild>
-                      <a
-                        href={attachment.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center space-x-2"
-                      >
-                        <Download className="w-4 h-4" />
-                        <span>ดาวน์โหลด</span>
-                        <ExternalLink className="w-3 h-3" />
-                      </a>
-                    </Button>
-                  </div>
-                ))}
+                </div>
               </div>
-            </div>
-          )}
-
-          {/* Responses/Comments */}
-          {complaint.responses && complaint.responses.length > 0 && (
-            <div className="space-y-3">
-              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                การตอบกลับ ({complaint.responses.length})
-              </p>
-              <div className="space-y-3">
-                {complaint.responses.map((response) => (
-                  <div key={response.id} className={`p-4 rounded-lg border ${
-                    response.isAdmin 
-                      ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800' 
-                      : 'bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700'
-                  }`}>
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="flex items-center space-x-2">
-                        <User className="w-4 h-4 text-gray-500" />
-                        <span className="text-sm font-medium">
-                          {response.isAdmin ? 'ผู้ดูแลระบบ' : 'ผู้ส่งเรื่อง'}
-                        </span>
-                      </div>
-                      <span className="text-xs text-gray-500">
-                        {formatDate(new Date(response.createdAt))}
-                      </span>
-                    </div>
-                    <p className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-line">
-                      {response.message}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+            )}
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
@@ -450,7 +360,7 @@ export default function ComplaintsPage() {
                 placeholder="ค้นหาเรื่องร้องเรียน..."
                 value={filters.search}
                 onChange={(e) => handleFilterChange('search', e.target.value)}
-                className="pl-10 input-modern"
+                className="pl-10"
               />
             </div>
 
@@ -719,4 +629,3 @@ export default function ComplaintsPage() {
     </div>
   );
 }
-

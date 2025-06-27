@@ -1,792 +1,323 @@
-# 🤖 AI-Friendly Developer Guide - Complaint Hub System
+"use client";
 
-## 🎯 What is this project?
-**Complaint Hub** is a web application that allows people to submit complaints anonymously and administrators to manage them efficiently.
+import { useSession, signOut } from "next-auth/react";
+import { usePathname } from "next/navigation";
+import { useState, useEffect } from "react";
+import { 
+  Home, 
+  MessageSquare, 
+  BarChart3, 
+  Settings, 
+  LogOut,
+  MessageCircle,
+  Bell,
+  Menu,
+  X,
+  ChevronDown,
+  User,
+  Moon,
+  Sun
+} from "lucide-react";
+import { cn } from "@/lib/cn";
+import { Button } from "@/components/ui/button";
+import { useNotificationStore } from "@/lib/stores/notification";
 
-### Core Purpose
-- **Public Users**: Submit complaints without revealing identity
-- **Administrators**: View, manage, and analyze complaints through a dashboard
-- **Tracking System**: Anyone can check complaint status using a tracking ID
-
----
-
-## 🏗️ System Architecture
-
-### Frontend (What users see)
-```
-📱 Public Form (Anonymous) → Submit complaints
-🔍 Tracking Page → Check complaint status  
-📊 Admin Dashboard → Manage complaints & view statistics
-```
-
-### Backend (How it works)
-```
-🔐 Authentication → NextAuth.js (login system)
-💾 Database → MySQL with Prisma ORM
-📁 File Storage → Multer + Sharp (image processing)
-🔔 Notifications → Real-time updates
-```
-
----
-
-## 🛠️ Technology Stack (AI Implementation Guide)
-
-### Primary Technologies
-| Component | Technology | Purpose |
-|-----------|------------|---------|
-| **Web Framework** | Next.js 15 (App Router) | Modern React framework |
-| **Language** | TypeScript | Type-safe JavaScript |
-| **UI Framework** | TailwindCSS + ShadCN UI | Styling and components |
-| **Forms** | React Hook Form + Zod | Form handling and validation |
-| **Database** | MySQL + Prisma ORM | Data storage and queries |
-| **Authentication** | NextAuth.js | User login system |
-| **File Upload** | Multer + Sharp | Handle file uploads |
-| **Charts** | Tremor | Data visualization |
-| **Notifications** | Zustand + Sonner | State management and alerts |
-
----
-
-## 📁 File Structure (App Router Pattern)
-
-```
-complaint-hub/
-├── app/                          # Main application
-│   ├── page.tsx                  # Public complaint form
-│   ├── tracking/page.tsx         # Track complaint status
-│   └── dashboard/                # Admin area
-│       ├── page.tsx              # Dashboard overview
-│       ├── complaints/           # Manage complaints
-│       ├── statistics/           # Analytics page
-│       └── settings/             # System settings
-├── components/                   # Reusable UI components
-│   ├── ui/                       # ShadCN components
-│   ├── forms/                    # Form components
-│   └── dashboard/                # Dashboard-specific components
-├── lib/                          # Core libraries
-│   ├── auth.ts                   # Authentication config
-│   ├── prisma.ts                 # Database connection
-│   └── middleware.ts             # Route protection
-├── prisma/                       # Database schema
-│   └── schema.prisma             # Database models
-└── api/                          # Backend endpoints
-    ├── complaints/               # Complaint operations
-    ├── upload/                   # File upload
-    └── auth/                     # Authentication
-```
-
----
-
-## 🎭 User Roles & Permissions
-
-### Role Types
-1. **Anonymous User** (No login required)
-   - Submit new complaints
-   - Track complaint status
-   - Upload supporting files
-
-2. **Viewer** (Basic admin)
-   - View all complaints
-   - Read-only dashboard access
-   - Export reports
-
-3. **Admin** (Full access)
-   - All viewer permissions
-   - Update complaint status
-   - Manage users
-   - System settings
-   - Delete complaints
-
----
-
-## 💾 Database Schema (Prisma Models)
-
-```prisma
-// Main complaint data
-model Complaint {
-  id          String   @id @default(cuid())
-  title       String   @db.VarChar(255)
-  description String   @db.Text
-  category    String   @db.VarChar(100)
-  priority    Priority @default(MEDIUM)
-  trackingId  String   @unique @db.VarChar(20)
-  status      Status   @default(NEW)
-  attachments Attachment[]
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  
-  @@map("complaints")
-}
-
-// File attachments
-model Attachment {
-  id          String    @id @default(cuid())
-  filename    String    @db.VarChar(255)
-  url         String    @db.VarChar(500)
-  fileType    String    @db.VarChar(100)
-  fileSize    Int
-  complaintId String
-  complaint   Complaint @relation(fields: [complaintId], references: [id], onDelete: Cascade)
-  createdAt   DateTime  @default(now())
-  
-  @@map("attachments")
-}
-
-// Admin users
-model User {
-  id        String   @id @default(cuid())
-  email     String   @unique @db.VarChar(255)
-  password  String   @db.VarChar(255)
-  role      Role     @default(VIEWER)
-  isActive  Boolean  @default(true)
-  lastLogin DateTime?
-  createdAt DateTime @default(now())
-  
-  @@map("users")
-}
-
-// Enums for better data integrity
-enum Priority {
-  LOW
-  MEDIUM
-  HIGH
-  URGENT
-}
-
-enum Status {
-  NEW
-  IN_PROGRESS
-  RESOLVED
-  CLOSED
-  ARCHIVED
-}
-
-enum Role {
-  VIEWER
-  ADMIN
-}
-
-enum Category {
-  TECHNICAL           // เทคนิค
-  PERSONNEL           // บุคคล
-  ENVIRONMENT         // สภาพแวดล้อม
-  EQUIPMENT           // อุปกรณ์
-  SAFETY              // ความปลอดภัย
-  FINANCIAL           // การเงิน
-  STRUCTURE_SYSTEM    // โครงสร้างและระบบการทำงาน
-  WELFARE_SERVICES    // สวัสดิการและบริการ
-  PROJECT_IDEA        // เสนอโปรเจค-ไอเดีย
-  OTHER               // อื่นๆ
-}
-```
-
----
-
-## 📋 ประเภทปัญหาและคำอธิบาย (Complaint Categories)
-
-### รายการประเภทปัญหา
-
-| ประเภท | อังกฤษ | คำอธิบาย | ตัวอย่าง |
-|--------|---------|----------|----------|
-| **🔧 เทคนิค** | TECHNICAL | ปัญหาเกี่ยวกับระบบเทคโนโลยี, ซอฟต์แวร์, และการทำงานทางเทคนิค | ระบบล่ม, เว็บไซต์ช้า, แอปไม่ทำงาน, ข้อมูลผิดพลาด |
-| **👥 บุคคล** | PERSONNEL | ปัญหาเกี่ยวกับบุคลากร, การให้บริการ, และความสัมพันธ์ในการทำงาน | พนักงานให้บริการไม่ดี, ขาดมารยาท, ไม่ตรงเวลา, ความขัดแย้ง |
-| **🌍 สภาพแวดล้อม** | ENVIRONMENT | ปัญหาเกี่ยวกับสภาพแวดล้อมในการทำงาน, ความสะอาด, และบรรยากาศ | ห้องสกปรก, เสียงดัง, อากาศร้อน, แสงสว่างไม่เพียงพอ |
-| **🛠️ อุปกรณ์** | EQUIPMENT | ปัญหาเกี่ยวกับเครื่องมือ, อุปกรณ์, และสิ่งอำนวยความสะดวก | เครื่องเสีย, อุปกรณ์ไม่เพียงพอ, คุณภาพต่ำ, ไม่มีการบำรุงรักษา |
-| **🛡️ ความปลอดภัย** | SAFETY | ปัญหาเกี่ยวกับความปลอดภัย, การรักษาความปลอดภัย, และสุขภาพ | พื้นลื่น, ไฟดับ, ไม่มีทางออกฉุกเฉิน, อุบัติเหตุ |
-| **💰 การเงิน** | FINANCIAL | ปัญหาเกี่ยวกับการเงิน, การชำระเงิน, และการจัดการทางการเงิน | เงินเดือนผิด, ค่าใช้จ่ายสูง, การเบิกจ่ายล่าช้า, งบประมาณไม่เพียงพอ |
-| **🏢 โครงสร้างและระบบการทำงาน** | STRUCTURE_SYSTEM | ปัญหาเกี่ยวกับโครงสร้างองกร, กระบวนการทำงาน, และระบบบริหารจัดการ | ขั้นตอนซับซ้อน, การอนุมัติช้า, ระบบไม่ชัดเจน, การประสานงานไม่ดี |
-| **🎯 สวัสดิการและบริการ** | WELFARE_SERVICES | ปัญหาเกี่ยวกับสวัสดิการ, บริการต่างๆ, และสิทธิประโยชน์ | สวัสดิการไม่เพียงพอ, บริการไม่ครบถ้วน, การรักษาพยาบาล, ประกันสังคม |
-| **💡 เสนอโปรเจค-ไอเดีย** | PROJECT_IDEA | ข้อเสนอแนะ, ไอเดียใหม่, และโครงการพัฒนา | ปรับปรุงระบบ, โครงการใหม่, นวัตกรรม, การพัฒนาองค์กร |
-| **📝 อื่นๆ** | OTHER | ปัญหาหรือข้อร้องเรียนที่ไม่อยู่ในหมวดหมู่ข้างต้น | เรื่องทั่วไป, ข้อสงสัย, ปัญหาเฉพาะ |
-
-### การใช้งานใน Code
-
-```typescript
-// ข้อมูล categories สำหรับ dropdown
-export const COMPLAINT_CATEGORIES = [
-  {
-    value: "TECHNICAL",
-    label: "🔧 เทคนิค",
-    description: "ปัญหาระบบเทคโนโลยี ซอฟต์แวร์ การทำงานทางเทคนิค",
-    examples: ["ระบบล่ม", "เว็บไซต์ช้า", "แอปไม่ทำงาน"]
+const navigation = [
+  { 
+    name: "ภาพรวม", 
+    href: "/dashboard", 
+    icon: Home,
+    description: "สรุปข้อมูลทั้งหมด"
   },
-  {
-    value: "PERSONNEL",
-    label: "👥 บุคคล", 
-    description: "ปัญหาบุคลากร การให้บริการ ความสัมพันธ์ในการทำงาน",
-    examples: ["บริการไม่ดี", "ขาดมารยาท", "ไม่ตรงเวลา"]
+  { 
+    name: "เรื่องร้องเรียน", 
+    href: "/dashboard/complaints", 
+    icon: MessageSquare,
+    description: "จัดการเรื่องร้องเรียน"
   },
-  {
-    value: "ENVIRONMENT",
-    label: "🌍 สภาพแวดล้อม",
-    description: "ปัญหาสภาพแวดล้อมการทำงาน ความสะอาด บรรยากาศ", 
-    examples: ["ห้องสกปรก", "เสียงดัง", "อากาศร้อน"]
+  { 
+    name: "สถิติ", 
+    href: "/dashboard/statistics", 
+    icon: BarChart3,
+    description: "วิเคราะห์ข้อมูล"
   },
-  {
-    value: "EQUIPMENT", 
-    label: "🛠️ อุปกรณ์",
-    description: "ปัญหาเครื่องมือ อุปกรณ์ สิ่งอำนวยความสะดวก",
-    examples: ["เครื่องเสีย", "อุปกรณ์ไม่เพียงพอ", "คุณภาพต่ำ"]
+  { 
+    name: "การตั้งค่า", 
+    href: "/dashboard/settings", 
+    icon: Settings,
+    description: "จัดการระบบ"
   },
-  {
-    value: "SAFETY",
-    label: "🛡️ ความปลอดภัย", 
-    description: "ปัญหาความปลอดภัย การรักษาความปลอดภัย สุขภาพ",
-    examples: ["พื้นลื่น", "ไฟดับ", "ไม่มีทางออกฉุกเฉิน"]
-  },
-  {
-    value: "FINANCIAL",
-    label: "💰 การเงิน",
-    description: "ปัญหาการเงิน การชำระเงิน การจัดการทางการเงิน", 
-    examples: ["เงินเดือนผิด", "ค่าใช้จ่ายสูง", "การเบิกจ่ายล่าช้า"]
-  },
-  {
-    value: "STRUCTURE_SYSTEM", 
-    label: "🏢 โครงสร้างและระบบการทำงาน",
-    description: "ปัญหาโครงสร้างองค์กร กระบวนการทำงาน ระบบบริหาร",
-    examples: ["ขั้นตอนซับซ้อน", "การอนุมัติช้า", "ระบบไม่ชัดเจน"]
-  },
-  {
-    value: "WELFARE_SERVICES",
-    label: "🎯 สวัสดิการและบริการ", 
-    description: "ปัญหาสวัสดิการ บริการต่างๆ สิทธิประโยชน์",
-    examples: ["สวัสดิการไม่เพียงพอ", "บริการไม่ครบ", "การรักษาพยาบาล"]
-  },
-  {
-    value: "PROJECT_IDEA",
-    label: "💡 เสนอโปรเจค-ไอเดีย",
-    description: "ข้อเสนอแนะ ไอเดียใหม่ โครงการพัฒนา",
-    examples: ["ปรับปรุงระบบ", "โครงการใหม่", "นวัตกรรม"]
-  },
-  {
-    value: "OTHER",
-    label: "📝 อื่นๆ", 
-    description: "ปัญหาที่ไม่อยู่ในหมวดหมู่ข้างต้น",
-    examples: ["เรื่องทั่วไป", "ข้อสงสัย", "ปัญหาเฉพาะ"]
-  }
-] as const;
+];
 
-// Type สำหรับ TypeScript
-export type ComplaintCategory = typeof COMPLAINT_CATEGORIES[number]['value'];
-```
-
-### Priority Mapping ตาม Category
-
-```typescript
-// แนะนำระดับความสำคัญตาม category
-export const CATEGORY_PRIORITY_SUGGESTIONS = {
-  SAFETY: "HIGH",           // ความปลอดภัย = สำคัญมาก
-  TECHNICAL: "MEDIUM",      // เทคนิค = ปานกลาง  
-  FINANCIAL: "HIGH",        // การเงิน = สำคัญมาก
-  EQUIPMENT: "MEDIUM",      // อุปกรณ์ = ปานกลาง
-  PERSONNEL: "MEDIUM",      // บุคคล = ปานกลาง
-  ENVIRONMENT: "LOW",       // สภาพแวดล้อม = ต่ำ
-  STRUCTURE_SYSTEM: "MEDIUM", // โครงสร้าง = ปานกลาง
-  WELFARE_SERVICES: "LOW",  // สวัสดิการ = ต่ำ
-  PROJECT_IDEA: "LOW",      // ไอเดีย = ต่ำ
-  OTHER: "LOW"              // อื่นๆ = ต่ำ
-} as const;
-```
-
----
-
-## 🔗 API Endpoints Guide
-
-### Public Endpoints (No authentication required)
-```typescript
-// Submit new complaint
-POST /api/complaints
-{
-  title: string,
-  description: string,
-  category: "TECHNICAL" | "PERSONNEL" | "ENVIRONMENT" | "EQUIPMENT" | "SAFETY" | "FINANCIAL" | "STRUCTURE_SYSTEM" | "WELFARE_SERVICES" | "PROJECT_IDEA" | "OTHER",
-  priority: "LOW" | "MEDIUM" | "HIGH" | "URGENT"
+interface SidebarProps {
+  className?: string;
 }
 
-// Track complaint
-GET /api/complaints/tracking/[trackingId]
-// Returns: complaint details without personal data
+export function Sidebar({ className }: SidebarProps) {
+  const { data: session } = useSession();
+  const pathname = usePathname();
+  const { unreadCount } = useNotificationStore();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(false);
+  const [showUserMenu, setShowUserMenu] = useState(false);
 
-// Upload files
-POST /api/upload
-// FormData with files, returns file URLs
-```
+  // Handle dark mode
+  useEffect(() => {
+    const isDark = localStorage.getItem('darkMode') === 'true';
+    setIsDarkMode(isDark);
+    document.documentElement.classList.toggle('dark', isDark);
+  }, []);
 
-### Protected Endpoints (Admin only)
-```typescript
-// Get all complaints (with pagination)
-GET /api/admin/complaints?page=1&limit=10&status=NEW
-
-// Update complaint status
-PATCH /api/admin/complaints/[id]
-{
-  status: "IN_PROGRESS" | "RESOLVED" | "CLOSED"
-}
-
-// Get dashboard statistics with category breakdown
-GET /api/admin/dashboard/stats
-// Returns: counts by status, category, priority, monthly trends
-
-// Get complaints by category
-GET /api/admin/complaints?category=TECHNICAL&status=NEW
-
-// Get category statistics
-GET /api/admin/analytics/categories
-// Returns: complaint counts per category, trends, resolution times
-
-// Get notifications
-GET /api/admin/notifications
-// Returns: recent complaints, system alerts
-```
-
----
-
-## 🎨 UI Components สำหรับ Categories
-
-### Category Selector Component
-
-```typescript
-// components/CategorySelector.tsx
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { COMPLAINT_CATEGORIES } from "@/lib/constants";
-
-interface CategorySelectorProps {
-  value?: string;
-  onChange: (value: string) => void;
-  showDescription?: boolean;
-}
-
-export function CategorySelector({ value, onChange, showDescription = false }: CategorySelectorProps) {
-  return (
-    <div className="space-y-2">
-      <Select value={value} onValueChange={onChange}>
-        <SelectTrigger>
-          <SelectValue placeholder="เลือกประเภทปัญหา" />
-        </SelectTrigger>
-        <SelectContent>
-          {COMPLAINT_CATEGORIES.map((category) => (
-            <SelectItem key={category.value} value={category.value} className="py-3">
-              <div className="flex flex-col items-start">
-                <span className="font-medium">{category.label}</span>
-                {showDescription && (
-                  <span className="text-xs text-muted-foreground mt-1">
-                    {category.description}
-                  </span>
-                )}
-              </div>
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-      
-      {value && showDescription && (
-        <div className="text-sm text-muted-foreground bg-muted p-3 rounded-md">
-          <p className="font-medium">ตัวอย่างปัญหา:</p>
-          <ul className="list-disc list-inside mt-1">
-            {COMPLAINT_CATEGORIES.find(c => c.value === value)?.examples.map((example, index) => (
-              <li key={index}>{example}</li>
-            ))}
-          </ul>
-        </div>
-      )}
-    </div>
-  );
-}
-```
-
-### Category Badge Component
-
-```typescript
-// components/CategoryBadge.tsx
-import { Badge } from "@/components/ui/badge";
-import { COMPLAINT_CATEGORIES } from "@/lib/constants";
-
-interface CategoryBadgeProps {
-  category: string;
-  variant?: "default" | "secondary" | "outline";
-}
-
-export function CategoryBadge({ category, variant = "default" }: CategoryBadgeProps) {
-  const categoryData = COMPLAINT_CATEGORIES.find(c => c.value === category);
-  
-  if (!categoryData) return null;
-
-  const colorMap = {
-    TECHNICAL: "bg-blue-100 text-blue-800 hover:bg-blue-200",
-    PERSONNEL: "bg-purple-100 text-purple-800 hover:bg-purple-200", 
-    ENVIRONMENT: "bg-green-100 text-green-800 hover:bg-green-200",
-    EQUIPMENT: "bg-orange-100 text-orange-800 hover:bg-orange-200",
-    SAFETY: "bg-red-100 text-red-800 hover:bg-red-200",
-    FINANCIAL: "bg-yellow-100 text-yellow-800 hover:bg-yellow-200",
-    STRUCTURE_SYSTEM: "bg-indigo-100 text-indigo-800 hover:bg-indigo-200",
-    WELFARE_SERVICES: "bg-pink-100 text-pink-800 hover:bg-pink-200",
-    PROJECT_IDEA: "bg-cyan-100 text-cyan-800 hover:bg-cyan-200",
-    OTHER: "bg-gray-100 text-gray-800 hover:bg-gray-200"
+  const toggleDarkMode = () => {
+    const newDarkMode = !isDarkMode;
+    setIsDarkMode(newDarkMode);
+    localStorage.setItem('darkMode', newDarkMode.toString());
+    document.documentElement.classList.toggle('dark', newDarkMode);
   };
 
-  return (
-    <Badge 
-      variant={variant}
-      className={`${colorMap[category as keyof typeof colorMap]} transition-colors`}
-    >
-      {categoryData.label}
-    </Badge>
-  );
-}
-```
+  const handleSignOut = () => {
+    signOut({ callbackUrl: "/" });
+  };
 
-### Category Statistics Dashboard
+  const closeMobileMenu = () => {
+    setIsMobileMenuOpen(false);
+  };
 
-```typescript
-// components/CategoryStats.tsx
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
-import { CategoryBadge } from "./CategoryBadge";
+  // Close mobile menu on route change
+  useEffect(() => {
+    closeMobileMenu();
+  }, [pathname]);
 
-interface CategoryStatsProps {
-  data: Array<{
-    category: string;
-    count: number;
-    resolved: number;
-    pending: number;
-    avgResolutionTime: number;
-  }>;
-}
+  const SidebarContent = () => (
+    <>
+      {/* Header */}
+      <div className="flex items-center justify-between px-6 py-5 border-b border-gray-200 dark:border-gray-700">
+        <div className="flex items-center space-x-3">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-lg">
+            <MessageCircle className="w-6 h-6 text-white" />
+          </div>
+          <div>
+            <h1 className="text-lg font-bold text-gray-900 dark:text-white">Complaint Hub</h1>
+            <p className="text-xs text-gray-500 dark:text-gray-400">Admin Dashboard</p>
+          </div>
+        </div>
+        
+        {/* Mobile close button */}
+        <button
+          onClick={closeMobileMenu}
+          className="lg:hidden p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
+        >
+          <X className="w-5 h-5" />
+        </button>
+      </div>
 
-export function CategoryStats({ data }: CategoryStatsProps) {
-  return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-      {/* Chart */}
-      <Card>
-        <CardHeader>
-          <CardTitle>📊 สถิติตามประเภทปัญหา</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={data}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis 
-                dataKey="category" 
-                tick={{ fontSize: 12 }}
-                angle={-45}
-                textAnchor="end"
-                height={80}
-              />
-              <YAxis />
-              <Tooltip />
-              <Bar dataKey="count" fill="#3b82f6" name="ทั้งหมด" />
-              <Bar dataKey="resolved" fill="#10b981" name="แก้ไขแล้ว" />
-            </BarChart>
-          </ResponsiveContainer>
-        </CardContent>
-      </Card>
+      {/* User Profile */}
+      <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+        <div className="relative">
+          <button
+            onClick={() => setShowUserMenu(!showUserMenu)}
+            className="w-full flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+          >
+            <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-full flex items-center justify-center shadow-md">
+              <span className="text-white font-semibold text-sm">
+                {session?.user?.email?.charAt(0).toUpperCase()}
+              </span>
+            </div>
+            <div className="flex-1 text-left">
+              <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
+                {session?.user?.email}
+              </p>
+              <p className="text-xs text-gray-500 dark:text-gray-400 capitalize">
+                {session?.user?.role}
+              </p>
+            </div>
+            <ChevronDown className={cn(
+              "w-4 h-4 text-gray-400 transition-transform",
+              showUserMenu && "rotate-180"
+            )} />
+          </button>
 
-      {/* Category List */}
-      <Card>
-        <CardHeader>
-          <CardTitle>📋 รายละเอียดตามประเภท</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {data.map((item) => (
-              <div key={item.category} className="flex items-center justify-between p-3 border rounded-lg">
-                <div className="flex items-center space-x-3">
-                  <CategoryBadge category={item.category} />
-                  <div className="text-sm">
-                    <p className="font-medium">{item.count} เรื่อง</p>
-                    <p className="text-muted-foreground">
-                      แก้ไข: {item.resolved} | รอ: {item.pending}
-                    </p>
-                  </div>
+          {/* User dropdown menu */}
+          {showUserMenu && (
+            <div className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 z-50 animate-fade-in-scale">
+              <div className="py-2">
+                <button
+                  onClick={toggleDarkMode}
+                  className="w-full flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700"
+                >
+                  {isDarkMode ? <Sun className="w-4 h-4 mr-3" /> : <Moon className="w-4 h-4 mr-3" />}
+                  {isDarkMode ? 'โหมดสว่าง' : 'โหมดมืด'}
+                </button>
+                <hr className="my-1 border-gray-200 dark:border-gray-700" />
+                <button
+                  onClick={handleSignOut}
+                  className="w-full flex items-center px-4 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
+                >
+                  <LogOut className="w-4 h-4 mr-3" />
+                  ออกจากระบบ
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Navigation */}
+      <nav className="flex-1 px-4 py-6 space-y-2">
+        <div className="text-xs font-medium text-gray-400 dark:text-gray-500 uppercase tracking-wider px-3 mb-4">
+          เมนูหลัก
+        </div>
+        
+        {navigation.map((item, index) => {
+          const isActive = pathname === item.href;
+          const isSettings = item.href.includes("settings");
+          
+          // Hide settings for non-admin users
+          if (isSettings && session?.user?.role !== "ADMIN") {
+            return null;
+          }
+
+          return (
+            <div key={item.name} className="animate-slide-in-left" style={{ animationDelay: `${index * 0.1}s` }}>
+              <a
+                href={item.href}
+                className={cn(
+                  "flex items-center px-3 py-3 rounded-xl text-sm font-medium transition-all duration-200 group",
+                  isActive
+                    ? "bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 text-blue-700 dark:text-blue-300 shadow-sm border-l-4 border-blue-500"
+                    : "text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700/50 hover:text-gray-900 dark:hover:text-white"
+                )}
+              >
+                <div className={cn(
+                  "p-2 rounded-lg mr-3 transition-colors",
+                  isActive 
+                    ? "bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400" 
+                    : "bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 group-hover:bg-gray-200 dark:group-hover:bg-gray-600"
+                )}>
+                  <item.icon className="w-5 h-5" />
                 </div>
-                <div className="text-right text-sm">
-                  <p className="font-medium">{item.avgResolutionTime}h</p>
-                  <p className="text-muted-foreground">เฉลี่ย</p>
+                
+                <div className="flex-1">
+                  <div className="font-medium">{item.name}</div>
+                  <div className="text-xs text-gray-500 dark:text-gray-400">{item.description}</div>
+                </div>
+                
+                {item.href.includes("complaints") && unreadCount > 0 && (
+                  <div className="bg-red-500 text-white text-xs rounded-full px-2 py-1 min-w-[20px] text-center animate-pulse-subtle">
+                    {unreadCount > 99 ? '99+' : unreadCount}
+                  </div>
+                )}
+              </a>
+            </div>
+          );
+        })}
+      </nav>
+
+      {/* Notifications Section */}
+      {unreadCount > 0 && (
+        <div className="px-4 py-4 border-t border-gray-200 dark:border-gray-700">
+          <div className="bg-gradient-to-r from-orange-50 to-red-50 dark:from-orange-900/20 dark:to-red-900/20 rounded-lg p-4 border border-orange-200 dark:border-orange-800">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center">
+                <div className="p-2 bg-orange-100 dark:bg-orange-900/30 rounded-lg mr-3">
+                  <Bell className="w-4 h-4 text-orange-600 dark:text-orange-400" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-orange-800 dark:text-orange-200">การแจ้งเตือน</p>
+                  <p className="text-xs text-orange-600 dark:text-orange-300">เรื่องใหม่ที่ต้องตรวจสอบ</p>
                 </div>
               </div>
-            ))}
+              <div className="bg-orange-500 text-white text-xs rounded-full px-2 py-1 min-w-[24px] text-center font-medium">
+                {unreadCount}
+              </div>
+            </div>
           </div>
-        </CardContent>
-      </Card>
-    </div>
+        </div>
+      )}
+
+      {/* Footer */}
+      <div className="px-6 py-4 border-t border-gray-200 dark:border-gray-700">
+        <div className="text-center">
+          <p className="text-xs text-gray-500 dark:text-gray-400">
+            © 2025 Complaint Hub
+          </p>
+          <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
+            v2.0.0
+          </p>
+        </div>
+      </div>
+    </>
+  );
+
+  return (
+    <>
+      {/* Mobile Menu Button */}
+      <button
+        onClick={() => setIsMobileMenuOpen(true)}
+        className="lg:hidden fixed top-4 left-4 z-50 p-3 bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+      >
+        <Menu className="w-5 h-5 text-gray-700 dark:text-gray-200" />
+      </button>
+
+      {/* Desktop Sidebar */}
+      <div className={cn(
+        "hidden lg:flex lg:flex-col lg:w-80 bg-white dark:bg-gray-800 shadow-xl border-r border-gray-200 dark:border-gray-700",
+        className
+      )}>
+        <SidebarContent />
+      </div>
+
+      {/* Mobile Sidebar Overlay */}
+      {isMobileMenuOpen && (
+        <div className="lg:hidden fixed inset-0 z-50 flex">
+          {/* Backdrop */}
+          <div 
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm"
+            onClick={closeMobileMenu}
+          />
+          
+          {/* Sidebar */}
+          <div className="relative flex flex-col w-80 max-w-[85vw] bg-white dark:bg-gray-800 shadow-2xl animate-slide-in-left">
+            <SidebarContent />
+          </div>
+        </div>
+      )}
+
+      {/* Mobile Bottom Navigation */}
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 mobile-safe-area z-40">
+        <div className="flex items-center justify-around py-2">
+          {navigation.slice(0, 4).map((item) => {
+            const isActive = pathname === item.href;
+            const isSettings = item.href.includes("settings");
+            
+            if (isSettings && session?.user?.role !== "ADMIN") {
+              return null;
+            }
+
+            return (
+              <a
+                key={item.name}
+                href={item.href}
+                className={cn(
+                  "flex flex-col items-center justify-center p-2 rounded-lg transition-colors touch-manipulation relative",
+                  isActive
+                    ? "text-blue-600 dark:text-blue-400"
+                    : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
+                )}
+              >
+                <item.icon className="w-5 h-5 mb-1" />
+                <span className="text-xs font-medium">{item.name}</span>
+                
+                {item.href.includes("complaints") && unreadCount > 0 && (
+                  <div className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                    {unreadCount > 9 ? '9+' : unreadCount}
+                  </div>
+                )}
+              </a>
+            );
+          })}
+        </div>
+      </div>
+    </>
   );
 }
-```
-
----
-
-## 🚀 AI Implementation Steps
-
-### Phase 1: Basic Setup
-1. **Initialize Project**
-   ```bash
-   npx create-next-app@latest complaint-hub --typescript --tailwind --app
-   cd complaint-hub
-   npm install prisma @prisma/client nextauth bcryptjs
-   ```
-
-2. **Database Setup**
-   ```bash
-   npx prisma init
-   # Edit DATABASE_URL in .env
-   npx prisma db push
-   npx prisma generate
-   ```
-
-3. **Authentication Setup**
-   - Configure NextAuth.js
-   - Create login/logout pages
-   - Setup middleware for route protection
-
-### Phase 2: Core Features
-1. **Public Complaint Form**
-   - React Hook Form with Zod validation
-   - Category selector with descriptions and examples
-   - Auto-suggest priority based on category
-   - File upload functionality
-   - Generate unique tracking ID
-
-2. **Tracking System**
-   - Public tracking page
-   - Status display with category badge
-   - Category-specific status messages
-
-3. **Admin Dashboard**
-   - Complaint list with category filters
-   - Category-based statistics and charts
-   - Status update functionality
-   - Category performance analytics
-
-### Phase 3: Advanced Features
-1. **Real-time Updates**
-   - WebSocket or polling for new complaints
-   - Notification system
-
-2. **Analytics Dashboard**
-   - Charts and graphs using Tremor
-   - Export functionality
-
-3. **Security Hardening**
-   - Input sanitization
-   - CSRF protection
-   - Rate limiting
-
----
-
-## 🎨 Recommended Additional Features
-
-### 1. **Auto-Categorization System**
-```typescript
-// AI-powered category suggestion
-POST /api/ai/categorize
-{
-  description: string
-} 
-// Returns: suggested category and confidence score
-```
-
-### 2. **Sentiment Analysis**
-```typescript
-// Analyze complaint sentiment
-interface SentimentResult {
-  score: number; // -1 to 1
-  label: "negative" | "neutral" | "positive";
-  urgency: "low" | "medium" | "high";
-}
-```
-
-### 3. **Smart Notifications**
-```typescript
-// Intelligent alert system
-interface SmartAlert {
-  type: "urgent_complaint" | "trend_detected" | "sla_breach";
-  message: string;
-  priority: number;
-  autoResolve: boolean;
-}
-```
-
-### 4. **Advanced Analytics**
-- **Trend Detection**: Identify recurring issues
-- **Response Time Tracking**: SLA monitoring
-- **Customer Satisfaction**: Follow-up surveys
-- **Predictive Analytics**: Forecast complaint volumes
-
-### 5. **Multi-Channel Integration**
-- **Email Integration**: Auto-create complaints from emails
-- **Chat Integration**: Real-time support chat
-- **API Webhooks**: Third-party system integration
-- **Mobile App**: Native mobile application
-
-### 6. **Enhanced Security**
-```typescript
-// Advanced security features
-interface SecurityFeatures {
-  reCaptcha: boolean;
-  rateLimiting: number; // requests per minute
-  ipBlocking: string[];
-  contentModeration: boolean;
-  encryptedStorage: boolean;
-}
-```
-
-### 7. **Workflow Automation**
-```typescript
-// Automated workflows
-interface WorkflowRule {
-  trigger: "new_complaint" | "status_change" | "time_based";
-  conditions: Record<string, any>;
-  actions: ("assign_user" | "send_email" | "update_status")[];
-}
-```
-
----
-
-## 🔧 Environment Configuration
-
-```bash
-# .env.local
-DATABASE_URL="mysql://user:password@localhost:3306/complaint_hub"
-NEXTAUTH_URL="http://localhost:3000"
-NEXTAUTH_SECRET="your-secret-key"
-UPLOAD_DIR="./public/uploads"
-MAX_FILE_SIZE=5242880  # 5MB
-ALLOWED_FILE_TYPES="jpg,jpeg,png,pdf,doc,docx"
-
-# Category Settings
-DEFAULT_CATEGORY="OTHER"
-REQUIRE_CATEGORY_DESCRIPTION=true
-AUTO_SUGGEST_PRIORITY=true
-CATEGORY_ANALYTICS_ENABLED=true
-```
-
-### Validation Schemas
-
-```typescript
-// lib/validations/complaint.ts
-import { z } from "zod";
-import { COMPLAINT_CATEGORIES } from "@/lib/constants";
-
-const categoryValues = COMPLAINT_CATEGORIES.map(c => c.value) as [string, ...string[]];
-
-export const ComplaintSchema = z.object({
-  title: z
-    .string()
-    .min(5, "หัวเรื่องต้องมีอย่างน้อย 5 ตัวอักษร")
-    .max(200, "หัวเรื่องต้องไม่เกิน 200 ตัวอักษร"),
-    
-  description: z
-    .string()
-    .min(10, "รายละเอียดต้องมีอย่างน้อย 10 ตัวอักษร")
-    .max(2000, "รายละเอียดต้องไม่เกิน 2000 ตัวอักษร"),
-    
-  category: z
-    .enum(categoryValues, {
-      errorMap: () => ({ message: "กรุณาเลือกประเภทปัญหา" }),
-    }),
-    
-  priority: z
-    .enum(["LOW", "MEDIUM", "HIGH", "URGENT"], {
-      errorMap: () => ({ message: "กรุณาเลือกระดับความสำคัญ" }),
-    }),
-    
-  attachments: z
-    .array(z.instanceof(File))
-    .max(5, "อัพโหลดได้สูงสุด 5 ไฟล์")
-    .optional(),
-});
-
-export type ComplaintFormData = z.infer<typeof ComplaintSchema>;
-
-// Category-specific validation
-export const CategoryValidationRules = {
-  SAFETY: {
-    requiredFields: ["location", "urgencyLevel"],
-    maxResolutionTime: 24, // hours
-    autoEscalate: true
-  },
-  FINANCIAL: {
-    requiredFields: ["amount", "department"],
-    requireApproval: true,
-    notifyRoles: ["ADMIN", "FINANCE_MANAGER"]
-  },
-  TECHNICAL: {
-    requiredFields: ["systemName", "errorDetails"],
-    autoAssignTo: "IT_TEAM",
-    includeSystemInfo: true
-  }
-} as const;
-```
-
----
-
-## 📊 Performance Optimization
-
-### Database Optimization
-```sql
--- Recommended indexes
-CREATE INDEX idx_complaints_status ON complaints(status);
-CREATE INDEX idx_complaints_category ON complaints(category);
-CREATE INDEX idx_complaints_created_at ON complaints(created_at);
-CREATE INDEX idx_complaints_tracking_id ON complaints(tracking_id);
-```
-
-### Caching Strategy
-```typescript
-// Redis caching for frequent queries
-interface CacheStrategy {
-  dashboardStats: "5min";
-  complaintLists: "1min";
-  userSessions: "24h";
-  staticContent: "1h";
-}
-```
-
----
-
-## 🚀 Deployment Checklist
-
-### Production Requirements
-- [ ] Environment variables configured
-- [ ] Database migrations applied
-- [ ] File upload directory permissions
-- [ ] SSL certificate installed
-- [ ] Rate limiting configured
-- [ ] Monitoring setup (logs, metrics)
-- [ ] Backup strategy implemented
-- [ ] Security headers configured
-
-### Monitoring & Maintenance
-- [ ] Error tracking (Sentry)
-- [ ] Performance monitoring (Vercel Analytics)
-- [ ] Database backup automation
-- [ ] Log rotation setup
-- [ ] Health check endpoints
-
----
-
-## 🎯 AI Assistant Prompt Templates
-
-### For Feature Development
-```
-Create a [FEATURE NAME] for the Complaint Hub system using:
-- Next.js 15 App Router
-- TypeScript with strict mode
-- TailwindCSS + ShadCN UI components
-- Prisma ORM for database operations
-- Follow the existing file structure in /app directory
-- Include proper error handling and validation
-- Add appropriate TypeScript interfaces
-```
-
-### For API Development
-```
-Build an API endpoint for [FUNCTIONALITY] that:
-- Uses Next.js API routes
-- Includes proper authentication middleware
-- Validates input with Zod schemas
-- Returns standardized JSON responses
-- Includes error handling for edge cases
-- Follows REST conventions
-```
-
-This guide should help AI assistants understand the project structure and implement features consistently!

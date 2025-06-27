@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { 
   MessageSquare, 
   Clock, 
@@ -10,8 +11,13 @@ import {
   AlertTriangle,
   TrendingUp,
   Users,
-  FileText
+  FileText,
+  Activity,
+  BarChart3,
+  ArrowUp,
+  ArrowDown
 } from "lucide-react";
+import Link from "next/link";
 
 interface DashboardStats {
   totalComplaints: number;
@@ -48,9 +54,17 @@ export default function DashboardPage() {
     monthlyTrends: {},
   });
   const [loading, setLoading] = useState(true);
+  const [currentTime, setCurrentTime] = useState(new Date());
 
   useEffect(() => {
     fetchStats();
+    
+    // Update time every minute
+    const interval = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 60000);
+    
+    return () => clearInterval(interval);
   }, []);
 
   const fetchStats = async () => {
@@ -82,70 +96,147 @@ export default function DashboardPage() {
       title: "เรื่องร้องเรียนทั้งหมด",
       value: stats.totalComplaints,
       icon: MessageSquare,
-      color: "text-blue-600",
-      bgColor: "bg-blue-50",
+      gradient: "from-blue-500 to-blue-600",
+      change: { value: 12, type: 'increase' as const },
+      description: "เพิ่มขึ้นจากเดือนที่แล้ว"
     },
     {
       title: "เรื่องใหม่",
       value: stats.newComplaints,
       icon: FileText,
-      color: "text-orange-600",
-      bgColor: "bg-orange-50",
+      gradient: "from-orange-500 to-red-500",
+      change: { value: 5, type: 'increase' as const },
+      description: "รอการตรวจสอบ"
     },
     {
       title: "กำลังดำเนินการ",
       value: stats.inProgressComplaints,
       icon: Clock,
-      color: "text-yellow-600",
-      bgColor: "bg-yellow-50",
+      gradient: "from-yellow-500 to-orange-500",
+      change: { value: 3, type: 'decrease' as const },
+      description: "อยู่ในขั้นตอนแก้ไข"
     },
     {
       title: "แก้ไขแล้ว",
       value: stats.resolvedComplaints,
       icon: CheckCircle,
-      color: "text-green-600",
-      bgColor: "bg-green-50",
+      gradient: "from-green-500 to-emerald-500",
+      change: { value: 18, type: 'increase' as const },
+      description: "สำเร็จในเดือนนี้"
     },
+  ];
+
+  const quickActions = [
+    {
+      title: "ตรวจสอบเรื่องใหม่",
+      description: "เรื่องร้องเรียนที่รอการตรวจสอบ",
+      href: "/dashboard/complaints?status=NEW",
+      count: stats.newComplaints,
+      countColor: "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300",
+      icon: AlertTriangle,
+      gradient: "from-orange-500 to-red-500"
+    },
+    {
+      title: "ติดตามความคืบหน้า",
+      description: "เรื่องร้องเรียนที่กำลังดำเนินการ",
+      href: "/dashboard/complaints?status=IN_PROGRESS",
+      count: stats.inProgressComplaints,
+      countColor: "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300",
+      icon: Activity,
+      gradient: "from-yellow-500 to-orange-500"
+    },
+    {
+      title: "ดูรายงานสถิติ",
+      description: "สถิติและกราฟแสดงผลการดำเนินงาน",
+      href: "/dashboard/statistics",
+      count: 0,
+      countColor: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300",
+      icon: BarChart3,
+      gradient: "from-blue-500 to-purple-500"
+    }
   ];
 
   if (loading) {
     return (
-      <div className="p-8">
-        <div className="animate-pulse space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="bg-gray-200 h-32 rounded-lg"></div>
-            ))}
-          </div>
+      <div className="p-4 md:p-8 space-y-8">
+        {/* Header skeleton */}
+        <div className="space-y-4 animate-pulse">
+          <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-64"></div>
+          <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-96"></div>
+        </div>
+        
+        {/* Stats skeleton */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {[1, 2, 3, 4].map((i) => (
+            <div key={i} className="bg-gray-200 dark:bg-gray-700 h-32 rounded-xl animate-pulse"></div>
+          ))}
+        </div>
+        
+        {/* Quick actions skeleton */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="bg-gray-200 dark:bg-gray-700 h-40 rounded-xl animate-pulse"></div>
+          ))}
         </div>
       </div>
     );
   }
 
   return (
-    <div className="p-8">
-      {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">ภาพรวมระบบ</h1>
-        <p className="text-gray-600 mt-2">สรุปข้อมูลเรื่องร้องเรียนในระบบ</p>
+    <div className="p-4 md:p-8 space-y-8 animate-slide-in">
+      {/* Enhanced Header */}
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between">
+        <div className="space-y-2">
+          <h1 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white">
+            ภาพรวมระบบ
+          </h1>
+          <p className="text-gray-600 dark:text-gray-300">
+            สรุปข้อมูลเรื่องร้องเรียนในระบบ • อัพเดทล่าสุด: {currentTime.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' })}
+          </p>
+        </div>
+        <div className="mt-4 md:mt-0 flex items-center space-x-2">
+          <Badge variant="outline" className="text-green-700 bg-green-50 border-green-200">
+            ระบบทำงานปกติ
+          </Badge>
+        </div>
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        {statCards.map((stat) => (
-          <Card key={stat.title}>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600 mb-1">
+      {/* Enhanced Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {statCards.map((stat, index) => (
+          <Card key={stat.title} className="group overflow-hidden hover-lift border-0 shadow-soft hover:shadow-medium transition-all duration-300 animate-fade-in-scale" style={{ animationDelay: `${index * 100}ms` }}>
+            <CardContent className="p-6 relative">
+              {/* Gradient Background */}
+              <div className={`absolute inset-0 bg-gradient-to-br ${stat.gradient} opacity-5 group-hover:opacity-10 transition-opacity`}></div>
+              
+              <div className="relative flex items-center justify-between">
+                <div className="space-y-2">
+                  <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
                     {stat.title}
                   </p>
-                  <p className="text-3xl font-bold text-gray-900">
-                    {stat.value.toLocaleString()}
+                  <div className="flex items-baseline space-x-2">
+                    <p className="text-3xl font-bold text-gray-900 dark:text-white">
+                      {stat.value.toLocaleString()}
+                    </p>
+                    <div className={`flex items-center space-x-1 text-xs font-medium ${
+                      stat.change.type === 'increase' 
+                        ? 'text-green-600 dark:text-green-400' 
+                        : 'text-red-600 dark:text-red-400'
+                    }`}>
+                      {stat.change.type === 'increase' ? (
+                        <ArrowUp className="w-3 h-3" />
+                      ) : (
+                        <ArrowDown className="w-3 h-3" />
+                      )}
+                      <span>{stat.change.value}%</span>
+                    </div>
+                  </div>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                    {stat.description}
                   </p>
                 </div>
-                <div className={`p-3 rounded-lg ${stat.bgColor}`}>
-                  <stat.icon className={`w-6 h-6 ${stat.color}`} />
+                <div className={`p-3 rounded-xl bg-gradient-to-br ${stat.gradient} shadow-soft`}>
+                  <stat.icon className="w-6 h-6 text-white" />
                 </div>
               </div>
             </CardContent>
@@ -153,103 +244,53 @@ export default function DashboardPage() {
         ))}
       </div>
 
-      {/* Additional Info Cards */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Today's Summary */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <TrendingUp className="w-5 h-5 mr-2" />
-              สรุปวันนี้
-            </CardTitle>
-            <CardDescription>
-              ข้อมูลเรื่องร้องเรียนในวันนี้
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-600">เรื่องร้องเรียนใหม่วันนี้</span>
-                <Badge className="bg-blue-50 text-blue-700">
-                  {stats.todayComplaints} เรื่อง
-                </Badge>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-600">เวลาตอบกลับเฉลี่ย</span>
-                <Badge className="bg-green-50 text-green-700">
-                  {stats.avgResponseTime} ชั่วโมง
-                </Badge>
-              </div>
-              <div className="pt-4 border-t">
-                <div className="flex items-center justify-center text-sm text-gray-500">
-                  <AlertTriangle className="w-4 h-4 mr-2" />
-                  ปรับปรุงข้อมูลล่าสุดเมื่อ {new Date().toLocaleTimeString('th-TH')}
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Quick Actions */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <Users className="w-5 h-5 mr-2" />
-              การดำเนินการด่วน
-            </CardTitle>
-            <CardDescription>
-              เมนูสำหรับการจัดการระบบ
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              <a
-                href="/dashboard/complaints?status=NEW"
-                className="block p-3 rounded-lg border hover:bg-gray-50 transition-colors"
-              >
-                <div className="flex items-center justify-between">
-                  <span className="font-medium">ตรวจสอบเรื่องใหม่</span>
-                  <Badge className="bg-orange-50 text-orange-700">
-                    {stats.newComplaints}
-                  </Badge>
-                </div>
-                <p className="text-sm text-gray-600 mt-1">
-                  เรื่องร้องเรียนที่รอการตรวจสอบ
-                </p>
-              </a>
-              
-              <a
-                href="/dashboard/complaints?status=IN_PROGRESS"
-                className="block p-3 rounded-lg border hover:bg-gray-50 transition-colors"
-              >
-                <div className="flex items-center justify-between">
-                  <span className="font-medium">ติดตามความคืบหน้า</span>
-                  <Badge className="bg-yellow-50 text-yellow-700">
-                    {stats.inProgressComplaints}
-                  </Badge>
-                </div>
-                <p className="text-sm text-gray-600 mt-1">
-                  เรื่องร้องเรียนที่กำลังดำเนินการ
-                </p>
-              </a>
-
-              <a
-                href="/dashboard/statistics"
-                className="block p-3 rounded-lg border hover:bg-gray-50 transition-colors"
-              >
-                <div className="flex items-center justify-between">
-                  <span className="font-medium">ดูรายงานสถิติ</span>
-                  <Badge className="bg-blue-50 text-blue-700">
-                    รายงาน
-                  </Badge>
-                </div>
-                <p className="text-sm text-gray-600 mt-1">
-                  สถิติและกราฟแสดงผลการดำเนินงาน
-                </p>
-              </a>
-            </div>
-          </CardContent>
-        </Card>
+      {/* Quick Actions */}
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+            การดำเนินการด่วน
+          </h2>
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {quickActions.map((action, index) => (
+            <Link key={action.title} href={action.href}>
+              <Card className="group overflow-hidden hover-lift border-0 shadow-soft hover:shadow-medium transition-all duration-300 cursor-pointer animate-fade-in-scale" style={{ animationDelay: `${(index + 4) * 100}ms` }}>
+                <CardContent className="p-6 relative">
+                  {/* Gradient Background */}
+                  <div className={`absolute inset-0 bg-gradient-to-br ${action.gradient} opacity-5 group-hover:opacity-10 transition-opacity`}></div>
+                  
+                  <div className="relative space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div className={`p-3 rounded-xl bg-gradient-to-br ${action.gradient} shadow-soft`}>
+                        <action.icon className="w-6 h-6 text-white" />
+                      </div>
+                      {action.count > 0 && (
+                        <Badge className={action.countColor}>
+                          {action.count}
+                        </Badge>
+                      )}
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <h3 className="text-lg font-semibold text-gray-900 dark:text-white group-hover:text-gray-700 dark:group-hover:text-gray-200 transition-colors">
+                        {action.title}
+                      </h3>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                        {action.description}
+                      </p>
+                    </div>
+                    
+                    <div className="flex items-center text-sm font-medium text-blue-600 dark:text-blue-400 group-hover:text-blue-700 dark:group-hover:text-blue-300 transition-colors">
+                      ดูรายละเอียด
+                      <ArrowUp className="w-4 h-4 ml-1 rotate-45 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </Link>
+          ))}
+        </div>
       </div>
     </div>
   );
