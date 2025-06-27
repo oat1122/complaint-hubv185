@@ -30,13 +30,23 @@ export function CategorySelector({
     <div className="space-y-2">
       <Select value={value} onValueChange={handleCategoryChange}>
         <SelectTrigger>
-          <SelectValue placeholder="เลือกประเภทปัญหา" />
+          <SelectValue placeholder="เลือกประเภทปัญหา">
+            {selectedCategory && (
+              <div className="flex items-center gap-2">
+                <selectedCategory.icon size={16} />
+                <span>{selectedCategory.label}</span>
+              </div>
+            )}
+          </SelectValue>
         </SelectTrigger>
         <SelectContent>
           {COMPLAINT_CATEGORIES.map((category) => (
             <SelectItem key={category.value} value={category.value} className="py-3">
               <div className="flex flex-col items-start">
-                <span className="font-medium">{category.label}</span>
+                <div className="flex items-center gap-2">
+                  <category.icon size={16} />
+                  <span className="font-medium">{category.label}</span>
+                </div>
                 {showDescription && (
                   <span className="text-xs text-muted-foreground mt-1">
                     {category.description}

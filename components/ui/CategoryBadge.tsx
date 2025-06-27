@@ -27,8 +27,9 @@ export function CategoryBadge({ category, variant = "default" }: CategoryBadgePr
   return (
     <Badge 
       variant={variant}
-      className={`${colorMap[category as keyof typeof colorMap]} transition-colors`}
+      className={`${colorMap[category as keyof typeof colorMap]} transition-colors flex items-center gap-1`}
     >
+      <categoryData.icon size={14} />
       {categoryData.label}
     </Badge>
   );

@@ -6,6 +6,7 @@ import { CategoryStats, CategorySummary } from "@/components/dashboard/CategoryS
 import { Badge } from "@/components/ui/badge";
 import { COMPLAINT_CATEGORIES, PRIORITY_LEVELS, STATUS_LEVELS } from "@/lib/constants";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from "recharts";
+import { BarChart as BarChartIcon, Target } from "lucide-react";
 
 interface DashboardStats {
   overallStats: {
@@ -116,12 +117,13 @@ export default function StatisticsPage() {
   const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'];
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold">📊 สถิติและการวิเคราะห์</h1>
-        <div className="text-sm text-muted-foreground">
-          อัพเดทล่าสุด: {new Date().toLocaleDateString('th-TH')}
-        </div>
+    <div className="container mx-auto py-6">
+      <div className="flex items-center gap-2 mb-6">
+        <BarChartIcon className="w-8 h-8 text-blue-600" />
+        <h1 className="text-3xl font-bold">สถิติและการวิเคราะห์</h1>
+      </div>
+      <div className="text-sm text-muted-foreground mb-6">
+        อัพเดทล่าสุด: {new Date().toLocaleDateString('th-TH')}
       </div>
 
       {/* Overall Summary */}
@@ -224,7 +226,10 @@ export default function StatisticsPage() {
       {/* Detailed Category Performance */}
       <Card>
         <CardHeader>
-          <CardTitle>🎯 ประสิทธิภาพการแก้ไขตามประเภท</CardTitle>
+          <CardTitle className="flex items-center gap-2">
+            <Target className="w-5 h-5 text-green-600" />
+            ประสิทธิภาพการแก้ไขตามประเภท
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="overflow-x-auto">

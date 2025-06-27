@@ -2,6 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { CategoryBadge } from "@/components/ui/CategoryBadge";
 import { COMPLAINT_CATEGORIES } from "@/lib/constants";
+import { TrendingUp } from "lucide-react";
 
 interface CategoryStatsProps {
   data: Array<{
@@ -31,7 +32,10 @@ export function CategoryStats({ data }: CategoryStatsProps) {
       {/* Chart */}
       <Card>
         <CardHeader>
-          <CardTitle>📊 สถิติตามประเภทปัญหา</CardTitle>
+          <CardTitle className="flex items-center gap-2">
+            <TrendingUp className="w-5 h-5 text-blue-600" />
+            สถิติตามประเภทปัญหา
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <ResponsiveContainer width="100%" height={300}>

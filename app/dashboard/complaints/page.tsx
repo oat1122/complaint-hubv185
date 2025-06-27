@@ -177,8 +177,11 @@ export default function ComplaintsPage() {
               <SelectContent>
                 <SelectItem value="all">ประเภททั้งหมด</SelectItem>
                 {COMPLAINT_CATEGORIES.map((category) => (
-                  <SelectItem key={category.value} value={category.value}>
-                    {category.label}
+                  <SelectItem key={category.value} value={category.value} className="flex items-start">
+                    <div className="flex items-center gap-2">
+                      <category.icon size={16} />
+                      <span>{category.label}</span>
+                    </div>
                   </SelectItem>
                 ))}
               </SelectContent>
