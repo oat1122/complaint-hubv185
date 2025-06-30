@@ -65,7 +65,6 @@ export async function PATCH(
       },
     });
 
-    // No notification on status change as per requirements
 
     return NextResponse.json({
       success: true,

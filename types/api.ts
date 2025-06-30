@@ -59,15 +59,6 @@ export interface DashboardStats {
   monthlyTrends: Record<string, number>;
 }
 
-export interface NotificationResponse {
-  id: string;
-  title: string;
-  message: string;
-  type: 'info' | 'success' | 'warning' | 'error';
-  read: boolean;
-  complaintId?: string;
-  createdAt: string;
-}
 
 export interface ComplaintFilters {
   search?: string;

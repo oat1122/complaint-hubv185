@@ -9,7 +9,6 @@ import {
   BarChart3,
   Settings,
   MessageCircle,
-  Bell,
   Menu,
   X,
   User,
@@ -20,7 +19,6 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { LogoutButton } from "@/components/ui/auth-buttons";
-import { useNotificationStore } from "@/lib/stores/notification";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 
@@ -60,7 +58,6 @@ interface SidebarProps {
 export function Sidebar({ isMobile = false, isOpen = false, onClose }: SidebarProps) {
   const { data: session } = useSession();
   const pathname = usePathname();
-  const { unreadCount } = useNotificationStore();
 
   const handleSignOut = () => {
     signOut({ callbackUrl: "/" });
@@ -91,7 +88,6 @@ export function Sidebar({ isMobile = false, isOpen = false, onClose }: SidebarPr
           <MobileSidebarContent
             session={session}
             pathname={pathname}
-            unreadCount={unreadCount}
             onSignOut={handleSignOut}
             onNavClick={handleNavClick}
             onClose={onClose}
@@ -106,7 +102,6 @@ export function Sidebar({ isMobile = false, isOpen = false, onClose }: SidebarPr
       <DesktopSidebarContent
         session={session}
         pathname={pathname}
-        unreadCount={unreadCount}
         onSignOut={handleSignOut}
       />
     </div>
@@ -116,14 +111,12 @@ export function Sidebar({ isMobile = false, isOpen = false, onClose }: SidebarPr
 function MobileSidebarContent({
   session,
   pathname,
-  unreadCount,
   onSignOut,
   onNavClick,
   onClose
 }: {
   session: any;
   pathname: string;
-  unreadCount: number;
   onSignOut: () => void;
   onNavClick: () => void;
   onClose?: () => void;
@@ -209,12 +202,7 @@ function MobileSidebarContent({
                     </div>
                   </div>
                 </div>
-                <div className="flex items-center space-x-2">
-                  {item.href.includes("complaints") && unreadCount > 0 && (
-                    <Badge className="bg-red-500 text-white text-xs min-w-[20px] h-5 flex items-center justify-center">
-                      {unreadCount > 99 ? '99+' : unreadCount}
-                    </Badge>
-                  )}
+            <div className="flex items-center space-x-2">
                   <ChevronRight
                     className={cn(
                       "w-4 h-4 transition-transform",
@@ -241,19 +229,6 @@ function MobileSidebarContent({
         </div>
       </div>
 
-      {unreadCount > 0 && (
-        <div className="p-4 border-t border-gray-200 dark:border-gray-700">
-          <div className="flex items-center justify-between p-3 bg-orange-50 dark:bg-orange-900/20 rounded-xl border border-orange-200 dark:border-orange-800">
-            <div className="flex items-center space-x-2 text-orange-700 dark:text-orange-300">
-              <Bell className="w-4 h-4" />
-              <span className="text-sm font-medium">การแจ้งเตือน</span>
-            </div>
-            <Badge className="bg-orange-500 text-white">
-              {unreadCount > 99 ? '99+' : unreadCount}
-            </Badge>
-          </div>
-        </div>
-      )}
 
       <div className="p-4 border-t border-gray-200 dark:border-gray-700">
         <Button
@@ -272,12 +247,10 @@ function MobileSidebarContent({
 function DesktopSidebarContent({
   session,
   pathname,
-  unreadCount,
   onSignOut
 }: {
   session: any;
   pathname: string;
-  unreadCount: number;
   onSignOut: () => void;
 }) {
   return (
@@ -341,11 +314,7 @@ function DesktopSidebarContent({
                 <item.icon className="w-5 h-5 flex-shrink-0" />
                 <span>{item.name}</span>
               </div>
-              {item.href.includes("complaints") && unreadCount > 0 && (
-                <Badge className="bg-red-500 text-white text-xs min-w-[20px] h-5 flex items-center justify-center">
-                  {unreadCount > 99 ? '99+' : unreadCount}
-                </Badge>
-              )}
+              
             </a>
           );
         })}
@@ -364,19 +333,7 @@ function DesktopSidebarContent({
         </div>
       </div>
 
-      {unreadCount > 0 && (
-        <div className="px-4 py-2 border-t border-gray-200 dark:border-gray-700">
-          <div className="flex items-center justify-between p-3 bg-orange-50 dark:bg-orange-900/20 rounded-xl border border-orange-200 dark:border-orange-800">
-            <div className="flex items-center space-x-2 text-orange-700 dark:text-orange-300">
-              <Bell className="w-4 h-4" />
-              <span className="text-sm font-medium">การแจ้งเตือน</span>
-            </div>
-            <Badge className="bg-orange-500 text-white">
-              {unreadCount > 99 ? '99+' : unreadCount}
-            </Badge>
-          </div>
-        </div>
-      )}
+
 
       <div className="p-4 border-t border-gray-200 dark:border-gray-700">
         <LogoutButton onClick={onSignOut} className="mx-auto" />
