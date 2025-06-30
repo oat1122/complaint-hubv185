@@ -22,6 +22,12 @@ model Complaint {
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt
 
+  @@index([status])
+  @@index([category])
+  @@index([priority])
+  @@index([createdAt])
+  @@index([status, category])
+  @@index([status, priority])
   @@map("complaints")
 }
 
@@ -35,6 +41,7 @@ model Attachment {
   complaint   Complaint @relation(fields: [complaintId], references: [id], onDelete: Cascade)
   createdAt   DateTime  @default(now())
 
+  @@index([complaintId])
   @@map("attachments")
 }
 
@@ -48,6 +55,8 @@ model User {
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
 
+  @@index([role])
+  @@index([isActive])
   @@map("users")
 }
 
@@ -59,6 +68,8 @@ model Notification {
   read      Boolean  @default(false)
   createdAt DateTime @default(now())
 
+  @@index([read])
+  @@index([createdAt])
   @@map("notifications")
 }
 
