@@ -241,7 +241,7 @@ export default function TrackingPage() {
                 </div>
               </div>
               <Button
-                onClick={handleSearch}
+                onClick={() => handleSearch()}
                 disabled={loading || !trackingId.trim()}
                 className="btn-primary tap-target sm:px-8"
               >
