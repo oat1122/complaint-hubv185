@@ -69,7 +69,7 @@ export async function PATCH(
     if (validatedData.status) {
       await prisma.notification.create({
         data: {
-          title: 'อัพเดทสถานะข้อร้องเรียน',
+          title: 'อัปเดตสถานะข้อร้องเรียน',
           message: `ข้อร้องเรียน "${existingComplaint.title}" มีการเปลี่ยนสถานะเป็น "${validatedData.status}"`,
           type: 'status_update',
         },
@@ -79,7 +79,7 @@ export async function PATCH(
     return NextResponse.json({
       success: true,
       complaint: updatedComplaint,
-      message: 'อัพเดทข้อร้องเรียนเรียบร้อยแล้ว',
+      message: 'อัปเดตข้อร้องเรียนเรียบร้อยแล้ว',
     });
 
   } catch (error) {
@@ -93,7 +93,7 @@ export async function PATCH(
     }
 
     return NextResponse.json(
-      { error: 'เกิดข้อผิดพลาดในการอัพเดท' },
+      { error: 'เกิดข้อผิดพลาดในการอัปเดต' },
       { status: 500 }
     );
   }
