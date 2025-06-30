@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { CategoryBadge } from "@/components/ui/CategoryBadge";
@@ -29,7 +29,7 @@ import {
 import { STATUS_LEVELS } from "@/lib/constants";
 import type { Complaint } from "./types";
 
-export function ComplaintCard({
+const ComplaintCard = React.memo(function ComplaintCard({
   complaint,
   onView,
   onUpdateStatus,
@@ -136,4 +136,6 @@ export function ComplaintCard({
       </CardContent>
     </Card>
   );
-}
+});
+
+export { ComplaintCard };

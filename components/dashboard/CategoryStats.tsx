@@ -1,5 +1,13 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+} from "./Recharts";
 import { CategoryBadge } from "@/components/ui/CategoryBadge";
 import { COMPLAINT_CATEGORIES } from "@/lib/constants";
 import { TrendingUp } from "lucide-react";
