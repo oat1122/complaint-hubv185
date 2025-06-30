@@ -29,24 +29,7 @@ import {
 } from "lucide-react";
 import { formatDate, getPriorityColor, getStatusColor, getPriorityLabel, getStatusLabel } from "@/lib/utils";
 import { toast } from "sonner";
-
-interface Complaint {
-  id: string;
-  title: string;
-  description: string;
-  category: string;
-  priority: string;
-  status: string;
-  trackingId: string;
-  createdAt: string;
-  attachments: Array<{
-    id: string;
-    filename: string;
-    url: string;
-    fileSize: number;
-    fileType: string;
-  }>;
-}
+import { Complaint } from "@/components/dashboard/complaints/common";
 
 export default function TrackingPage() {
   const [trackingId, setTrackingId] = useState("");
