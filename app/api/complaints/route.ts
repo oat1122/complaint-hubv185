@@ -100,12 +100,18 @@ export async function POST(request: NextRequest) {
     }
 
     // Create notification for admin
-    await prisma.notification.create({
+    const notif = await prisma.notification.create({
       data: {
         title: 'เรื่องร้องเรียนใหม่',
         message: `มีเรื่องร้องเรียนใหม่: ${sanitizedTitle}`,
         type: 'info',
+        complaintId: complaint.id,
       },
+    });
+
+    const users = await prisma.user.findMany({ where: { isActive: true } });
+    await prisma.userNotification.createMany({
+      data: users.map((u) => ({ userId: u.id, notificationId: notif.id })),
     });
 
     return NextResponse.json({

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { CategoryBadge } from "@/components/ui/CategoryBadge";
@@ -418,6 +419,8 @@ function ComplaintDetailModal({
 }
 
 export default function ComplaintsPage() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [complaints, setComplaints] = useState<Complaint[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
@@ -454,6 +457,13 @@ export default function ComplaintsPage() {
     return () => window.removeEventListener('resize', handleResize);
   }, [viewMode]);
 
+  useEffect(() => {
+    const id = searchParams.get('view');
+    if (id) {
+      openComplaintById(id);
+    }
+  }, [searchParams]);
+
   const fetchComplaints = async () => {
     if (!refreshing) setLoading(true);
     try {
@@ -483,6 +493,18 @@ export default function ComplaintsPage() {
     }
   };
 
+  const openComplaintById = async (id: string) => {
+    try {
+      const res = await fetch(`/api/admin/complaints/${id}`);
+      if (res.ok) {
+        const full = await res.json();
+        setSelectedComplaint(full);
+      }
+    } catch (error) {
+      console.error('Error fetching complaint details:', error);
+    }
+  };
+
   const updateComplaintStatus = async (id: string, newStatus: string) => {
     try {
       const response = await fetch(`/api/admin/complaints/${id}`, {
@@ -505,16 +527,9 @@ export default function ComplaintsPage() {
   };
 
   const handleViewComplaint = async (complaint: Complaint) => {
+    router.push(`/dashboard/complaints?view=${complaint.id}`);
     setSelectedComplaint(complaint);
-    try {
-      const res = await fetch(`/api/admin/complaints/${complaint.id}`);
-      if (res.ok) {
-        const full = await res.json();
-        setSelectedComplaint(full);
-      }
-    } catch (error) {
-      console.error('Error fetching complaint details:', error);
-    }
+    await openComplaintById(complaint.id);
   };
 
   const handleRefresh = () => {
@@ -949,7 +964,10 @@ export default function ComplaintsPage() {
 
       <ComplaintDetailModal
         complaint={selectedComplaint}
-        onClose={() => setSelectedComplaint(null)}
+        onClose={() => {
+          setSelectedComplaint(null);
+          router.push('/dashboard/complaints');
+        }}
         onUpdateStatus={updateComplaintStatus}
       />
     </div>

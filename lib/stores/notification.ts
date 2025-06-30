@@ -7,6 +7,7 @@ interface NotificationState {
     message: string;
     type: 'info' | 'success' | 'warning' | 'error';
     read: boolean;
+    complaintId?: string;
     createdAt: Date;
   }>;
   unreadCount: number;

@@ -19,27 +19,38 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get('limit') || '20');
     const unreadOnly = searchParams.get('unreadOnly') === 'true';
 
+    const userId = session.user.id;
+
     const skip = (page - 1) * limit;
 
     // Build where clause
-    const where: any = {};
+    const where: any = { userId };
     if (unreadOnly) {
       where.read = false;
     }
 
     // Fetch notifications
-    const [notifications, totalCount, unreadCount] = await Promise.all([
-      prisma.notification.findMany({
+    const [rows, totalCount, unreadCount] = await Promise.all([
+      prisma.userNotification.findMany({
         where,
-        orderBy: {
-          createdAt: 'desc',
-        },
+        orderBy: { createdAt: 'desc' },
         skip,
         take: limit,
+        include: { notification: true },
       }),
-      prisma.notification.count({ where }),
-      prisma.notification.count({ where: { read: false } }),
+      prisma.userNotification.count({ where }),
+      prisma.userNotification.count({ where: { userId, read: false } }),
     ]);
+
+    const notifications = rows.map((r) => ({
+      id: r.notification.id,
+      title: r.notification.title,
+      message: r.notification.message,
+      type: r.notification.type,
+      complaintId: r.notification.complaintId,
+      read: r.read,
+      createdAt: r.notification.createdAt,
+    }));
 
     // Get recent complaints for system alerts
     const recentComplaints = await prisma.complaint.findMany({
@@ -136,15 +147,13 @@ export async function PATCH(request: NextRequest) {
     const body = await request.json();
     const { notificationId, markAllAsRead } = body;
 
+    const userId = session.user.id;
+
     if (markAllAsRead) {
-      // Mark all notifications as read
-      await prisma.notification.updateMany({
-        where: {
-          read: false,
-        },
-        data: {
-          read: true,
-        },
+      // Mark all notifications as read for this user
+      await prisma.userNotification.updateMany({
+        where: { userId, read: false },
+        data: { read: true },
       });
 
       return NextResponse.json({
@@ -153,13 +162,11 @@ export async function PATCH(request: NextRequest) {
       });
     } else if (notificationId) {
       // Mark specific notification as read
-      await prisma.notification.update({
+      await prisma.userNotification.update({
         where: {
-          id: notificationId,
+          userId_notificationId: { userId, notificationId },
         },
-        data: {
-          read: true,
-        },
+        data: { read: true },
       });
 
       return NextResponse.json({
