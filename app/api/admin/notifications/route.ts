@@ -7,7 +7,10 @@ export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
 
-    if (!session || (session.user.role !== "ADMIN" && session.user.role !== "VIEWER")) {
+    if (
+      !session ||
+      (session.user.role !== "ADMIN" && session.user.role !== "VIEWER")
+    ) {
       return NextResponse.json(
         { error: 'ไม่ได้รับอนุญาต' },
         { status: 401 }
@@ -137,7 +140,10 @@ export async function PATCH(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
 
-    if (!session || (session.user.role !== "ADMIN" && session.user.role !== "VIEWER")) {
+    if (
+      !session ||
+      (session.user.role !== "ADMIN" && session.user.role !== "VIEWER")
+    ) {
       return NextResponse.json(
         { error: 'ไม่ได้รับอนุญาต' },
         { status: 401 }
