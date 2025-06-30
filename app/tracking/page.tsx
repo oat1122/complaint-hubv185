@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -53,9 +53,22 @@ export default function TrackingPage() {
   const [complaint, setComplaint] = useState<Complaint | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [history, setHistory] = useState<string[]>([]);
 
-  const handleSearch = async () => {
-    if (!trackingId.trim()) {
+  useEffect(() => {
+    const stored = localStorage.getItem("trackingHistory");
+    if (stored) {
+      try {
+        setHistory(JSON.parse(stored));
+      } catch {
+        /* ignore */
+      }
+    }
+  }, []);
+
+  const handleSearch = async (id?: string) => {
+    const targetId = id ?? trackingId;
+    if (!targetId.trim()) {
       setError("กรุณาระบุรหัสติดตาม");
       return;
     }
@@ -65,7 +78,7 @@ export default function TrackingPage() {
     setComplaint(null);
 
     try {
-      const response = await fetch(`/api/complaints?trackingId=${trackingId}`);
+      const response = await fetch(`/api/complaints?trackingId=${targetId}`);
       const data = await response.json();
 
       if (!response.ok) {
@@ -73,6 +86,9 @@ export default function TrackingPage() {
       }
 
       setComplaint(data);
+      const newHistory = [targetId, ...history.filter((h) => h !== targetId)].slice(0, 5);
+      setHistory(newHistory);
+      localStorage.setItem("trackingHistory", JSON.stringify(newHistory));
       toast.success("พบข้อมูลเรื่องร้องเรียนแล้ว");
     } catch (err: any) {
       setError(err.message);
@@ -242,6 +258,23 @@ export default function TrackingPage() {
                 )}
               </Button>
             </div>
+
+            {history.length > 0 && (
+              <div className="text-sm text-gray-600 dark:text-gray-300 space-y-2">
+                <p>รหัสที่เคยค้นหา:</p>
+                <div className="flex flex-wrap gap-2">
+                  {history.map((id) => (
+                    <button
+                      key={id}
+                      onClick={() => handleSearch(id)}
+                      className="px-2 py-1 bg-gray-100 dark:bg-gray-800 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700 transition"
+                    >
+                      {id}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {error && (
               <div className="animate-slide-in">

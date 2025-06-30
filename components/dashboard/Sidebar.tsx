@@ -152,7 +152,7 @@ function MobileSidebarContent({
 
       <div className="p-6 border-b border-gray-200 dark:border-gray-700 bg-gradient-to-r from-gray-50 to-white dark:from-gray-800 dark:to-gray-900">
         <div className="flex items-center space-x-4">
-          <div className="w-12 h-12 bg-gradient-primary rounded-full flex items-center justify-center shadow-medium">
+          <div className="w-12 h-12 bg-[linear-gradient(135deg,#ff6b6b,#f43f5e)] rounded-full flex items-center justify-center shadow-medium">
             <span className="text-white font-bold text-lg">
               {session?.user?.email?.charAt(0).toUpperCase()}
             </span>
