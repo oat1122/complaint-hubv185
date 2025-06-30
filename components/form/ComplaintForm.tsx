@@ -147,7 +147,7 @@ export default function ComplaintForm() {
 
   // Camera capture for mobile
   const handleCameraCapture = async () => {
-    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+    if (typeof navigator !== 'undefined' && 'mediaDevices' in navigator) {
       try {
         const input = document.createElement('input');
         input.type = 'file';

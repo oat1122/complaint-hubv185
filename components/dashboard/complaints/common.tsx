@@ -4,8 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { CategoryBadge } from "@/components/ui/CategoryBadge";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Input } from "@/components/ui/input";
-import { Calendar, FileText, Eye, AlertTriangle, Clock, CheckCircle, Paperclip, Hash, X, User, ExternalLink } from "lucide-react";
+import { Calendar, FileText, Eye, AlertTriangle, Clock, CheckCircle, Paperclip, Hash, X, User, ExternalLink, Download } from "lucide-react";
 import { formatDate, getPriorityColor, getStatusColor, getPriorityLabel, getStatusLabel } from "@/lib/utils";
 import { STATUS_LEVELS } from "@/lib/constants";
 
@@ -187,11 +186,11 @@ export function ComplaintDetailModal({
   onClose: () => void;
   onUpdateStatus: (id: string, status: string) => void;
 }) {
-  if (!complaint) return null;
-
   const [previewAttachment, setPreviewAttachment] = useState<
     { url: string; filename: string } | null
   >(null);
+
+  if (!complaint) return null;
 
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-md flex items-center justify-center p-4 z-50 animate-fade-in-scale safe-top safe-bottom">

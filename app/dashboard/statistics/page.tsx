@@ -408,7 +408,7 @@ export default function StatisticsPage() {
                     cy="50%"
                     outerRadius={80}
                     dataKey="count"
-                    label={({ label, percent }) => `${label} ${(percent * 100).toFixed(0)}%`}
+                    label={({ label, percent }) => `${label} ${((percent ?? 0) * 100).toFixed(0)}%`}
                     labelLine={false}
                   >
                     {priorityChartData.map((entry, index) => (

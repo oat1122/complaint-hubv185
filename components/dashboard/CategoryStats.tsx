@@ -114,9 +114,6 @@ export function CategorySummary({ data }: CategoryStatsProps) {
     prev.totalCount > current.totalCount ? prev : current, data[0]
   );
 
-  const fastestCategory = data.reduce((prev, current) => 
-    prev.avgResolutionTime < current.avgResolutionTime ? prev : current, data[0]
-  );
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
