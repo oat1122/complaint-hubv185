@@ -314,7 +314,7 @@ export function LoadingPage({
         {showLogo && (
           <div className="flex items-center justify-center space-x-3 mb-8">
             <div className="p-3 bg-gradient-primary rounded-xl shadow-large">
-              <MessageCircle className="w-8 h-8 text-white" />
+              <MessageCircle className="w-8 h-8 text-primary" />
             </div>
             <div>
               <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Complaint Hub</h1>
