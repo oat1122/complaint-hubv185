@@ -266,7 +266,7 @@ export default function ComplaintForm() {
         <CardContent className="p-6 sm:p-8">
           <div className="text-center space-y-6">
             {/* Success Icon */}
-            <div className="w-20 h-20 bg-gradient-primary rounded-full flex items-center justify-center mx-auto shadow-large animate-bounce-gentle">
+            <div className="w-20 h-20 bg-gradient-success desktop:bg-gradient-primary rounded-full flex items-center justify-center mx-auto shadow-large animate-bounce-gentle">
               <CheckCircle className="w-10 h-10 text-white" />
             </div>
             
