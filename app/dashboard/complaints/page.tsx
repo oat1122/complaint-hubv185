@@ -97,19 +97,47 @@ function EmptyState() {
 }
 
 // Complaint Detail Modal Component
-function ComplaintDetailModal({ 
-  complaint, 
-  onClose, 
-  onUpdateStatus 
-}: { 
-  complaint: Complaint | null; 
+function ComplaintDetailModal({
+  complaint,
+  onClose,
+  onUpdateStatus
+}: {
+  complaint: Complaint | null;
   onClose: () => void;
   onUpdateStatus: (id: string, status: string) => void;
 }) {
   if (!complaint) return null;
 
+  const [previewAttachment, setPreviewAttachment] = useState<
+    { url: string; filename: string } | null
+  >(null);
+
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fade-in-scale">
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-md flex items-center justify-center p-4 z-50 animate-fade-in-scale">
+      {previewAttachment && (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-md flex items-center justify-center p-4 z-50">
+          <div className="relative w-full max-w-3xl max-h-[90vh]">
+            <button
+              onClick={() => setPreviewAttachment(null)}
+              className="absolute top-2 right-2 bg-black/60 text-white rounded-full p-1 hover:bg-black/80"
+            >
+              <X className="w-5 h-5" />
+            </button>
+            {/\.(png|jpe?g|gif|bmp|webp)$/i.test(previewAttachment.url) ? (
+              <img
+                src={previewAttachment.url}
+                alt={previewAttachment.filename}
+                className="w-full h-full object-contain rounded-lg"
+              />
+            ) : (
+              <iframe
+                src={previewAttachment.url}
+                className="w-full h-[80vh] rounded-lg bg-white"
+              />
+            )}
+          </div>
+        </div>
+      )}
       <Card className="max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col">
         <CardHeader className="border-b border-gray-200 dark:border-gray-700">
           <div className="flex items-start justify-between">
@@ -211,20 +239,32 @@ function ComplaintDetailModal({
                         <p className="text-xs text-gray-500 dark:text-gray-400">
                           {(attachment.fileSize / 1024 / 1024).toFixed(2)} MB • {attachment.fileType}
                         </p>
-                      </div>
-                    </div>
-                    <Button variant="outline" size="sm" asChild>
-                      <a
-                        href={attachment.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center space-x-2"
-                      >
-                        <Download className="w-4 h-4" />
-                        <span>ดาวน์โหลด</span>
-                        <ExternalLink className="w-3 h-3" />
-                      </a>
-                    </Button>
+                      </div>                     </div>
+                     <div className="flex items-center space-x-2">
+                       <Button
+                         variant="outline"
+                         size="sm"
+                         onClick={() =>
+                           setPreviewAttachment({ url: attachment.url, filename: attachment.filename })
+                         }
+                         className="flex items-center space-x-2"
+                       >
+                         <Eye className="w-4 h-4" />
+                         <span>เปิดดู</span>
+                       </Button>
+                       <Button variant="outline" size="sm" asChild>
+                         <a
+                           href={attachment.url}
+                           target="_blank"
+                           rel="noopener noreferrer"
+                           className="flex items-center space-x-2"
+                         >
+                           <Download className="w-4 h-4" />
+                           <span>ดาวน์โหลด</span>
+                           <ExternalLink className="w-3 h-3" />
+                         </a>
+                       </Button>
+                     </div>
                   </div>
                 ))}
               </div>

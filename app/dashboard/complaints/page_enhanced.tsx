@@ -158,18 +158,25 @@ function ComplaintDetailModal({
             </div>
             {complaint.attachments.length > 0 && (
               <div>
-                <label className="text-sm font-medium text-gray-600 dark:text-gray-400">ไฟล์แนบ</label>
-                <div className="mt-2 space-y-2">
-                  {complaint.attachments.map((attachment) => (
-                    <div key={attachment.id} className="flex items-center space-x-3 p-3 border rounded-lg">
-                      <Paperclip className="w-4 h-4" />
-                      <span className="flex-1">{attachment.filename}</span>
-                      <Button size="sm" variant="outline">
-                        ดาวน์โหลด
-                      </Button>
-                    </div>
-                  ))}
-                </div>
+                <label className="text-sm font-medium text-gray-600 dark:text-gray-400">ไฟล์แนบ</label>                 <div className="mt-2 space-y-2">
+                   {complaint.attachments.map((attachment) => (
+                     <div key={attachment.id} className="flex items-center space-x-3 p-3 border rounded-lg">
+                       <Paperclip className="w-4 h-4" />
+                       <span className="flex-1">{attachment.filename}</span>
+                       <Button size="sm" variant="outline" asChild>
+                         <a
+                           href={attachment.url}
+                           target="_blank"
+                           rel="noopener noreferrer"
+                           className="flex items-center space-x-1"
+                         >
+                           <Eye className="w-4 h-4" />
+                           <span>เปิดไฟล์</span>
+                         </a>
+                       </Button>
+                     </div>
+                   ))}
+                 </div>
               </div>
             )}
           </div>
