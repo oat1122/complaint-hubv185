@@ -15,7 +15,7 @@ import {
   LoadingSkeleton,
   EmptyState,
   ComplaintDetailModal
-} from "@/components/dashboard/complaints/common";
+} from "@/components/dashboard/complaints";
 import {
   Search,
   Filter,

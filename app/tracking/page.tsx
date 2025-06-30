@@ -29,7 +29,7 @@ import {
 } from "lucide-react";
 import { formatDate, getPriorityColor, getStatusColor, getPriorityLabel, getStatusLabel } from "@/lib/utils";
 import { toast } from "sonner";
-import { Complaint } from "@/components/dashboard/complaints/common";
+import { Complaint } from "@/components/dashboard/complaints";
 
 export default function TrackingPage() {
   const [trackingId, setTrackingId] = useState("");
