@@ -112,7 +112,7 @@ export default function ComplaintForm() {
         <CardContent className="text-center space-y-4">
           <div className="bg-gray-50 p-4 rounded-lg">
             <p className="text-sm text-gray-600 mb-2">รหัสติดตาม</p>
-            <p className="text-2xl font-bold text-blue-600">{trackingId}</p>
+            <p className="text-2xl font-bold text-primary">{trackingId}</p>
           </div>
           <div className="flex gap-2 justify-center">
             <Button 

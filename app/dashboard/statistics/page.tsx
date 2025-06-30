@@ -119,7 +119,7 @@ export default function StatisticsPage() {
   return (
     <div className="container mx-auto py-6">
       <div className="flex items-center gap-2 mb-6">
-        <BarChartIcon className="w-8 h-8 text-blue-600" />
+        <BarChartIcon className="w-8 h-8 text-primary" />
         <h1 className="text-3xl font-bold">สถิติและการวิเคราะห์</h1>
       </div>
       <div className="text-sm text-muted-foreground mb-6">

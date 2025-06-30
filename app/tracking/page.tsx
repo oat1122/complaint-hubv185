@@ -76,25 +76,25 @@ export default function TrackingPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+    <div className="min-h-screen bg-gradient-to-br from-[#fbf5f5] to-[#ffeaea]">
       {/* Header */}
       <header className="bg-white shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
-              <MessageCircle className="w-8 h-8 text-blue-600" />
+              <MessageCircle className="w-8 h-8 text-primary" />
               <h1 className="text-2xl font-bold text-gray-900">Complaint Hub</h1>
             </div>
             <div className="flex items-center space-x-4">
-              <a 
-                href="/" 
-                className="text-blue-600 hover:text-blue-800 font-medium"
+              <a
+                href="/"
+                className="text-primary hover:text-primary/80 font-medium"
               >
                 ส่งเรื่องร้องเรียน
               </a>
-              <a 
-                href="/dashboard" 
-                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+              <a
+                href="/dashboard"
+                className="bg-primary text-primary-foreground px-4 py-2 rounded-lg hover:bg-primary/90"
               >
                 เข้าสู่ระบบ
               </a>
@@ -200,7 +200,7 @@ export default function TrackingPage() {
                           href={attachment.url}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+                          className="text-primary hover:text-primary/80 text-sm font-medium"
                         >
                           ดาวน์โหลด
                         </a>
@@ -245,9 +245,9 @@ export default function TrackingPage() {
               </div>
 
               {/* Help Text */}
-              <div className="bg-blue-50 p-4 rounded-lg">
-                <h4 className="font-medium text-blue-900 mb-2">ข้อมูลเพิ่มเติม</h4>
-                <ul className="text-sm text-blue-800 space-y-1">
+              <div className="bg-primary/10 p-4 rounded-lg">
+                <h4 className="font-medium text-primary mb-2">ข้อมูลเพิ่มเติม</h4>
+                <ul className="text-sm text-primary/80 space-y-1">
                   <li>• เราจะติดต่อกลับภายใน 3-5 วันทำการ</li>
                   <li>• หากต้องการข้อมูลเพิ่มเติม กรุณาส่งเรื่องร้องเรียนใหม่</li>
                   <li>• เก็บรหัสติดตามนี้ไว้เพื่อตรวจสอบสถานะ</li>

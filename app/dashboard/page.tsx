@@ -96,7 +96,7 @@ export default function DashboardPage() {
       title: "เรื่องร้องเรียนทั้งหมด",
       value: stats.totalComplaints,
       icon: MessageSquare,
-      gradient: "from-blue-500 to-blue-600",
+      gradient: "from-[#ab1616] to-[#750c0c]",
       change: { value: 12, type: 'increase' as const },
       description: "เพิ่มขึ้นจากเดือนที่แล้ว"
     },
@@ -150,9 +150,9 @@ export default function DashboardPage() {
       description: "สถิติและกราฟแสดงผลการดำเนินงาน",
       href: "/dashboard/statistics",
       count: 0,
-      countColor: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300",
+      countColor: "bg-primary/10 text-primary dark:bg-primary/20 dark:text-primary",
       icon: BarChart3,
-      gradient: "from-blue-500 to-purple-500"
+      gradient: "from-[#ab1616] to-[#750c0c]"
     }
   ];
 
@@ -281,7 +281,7 @@ export default function DashboardPage() {
                       </p>
                     </div>
                     
-                    <div className="flex items-center text-sm font-medium text-blue-600 dark:text-blue-400 group-hover:text-blue-700 dark:group-hover:text-blue-300 transition-colors">
+                    <div className="flex items-center text-sm font-medium text-primary dark:text-primary group-hover:text-primary/80 dark:group-hover:text-primary/80 transition-colors">
                       ดูรายละเอียด
                       <ArrowUp className="w-4 h-4 ml-1 rotate-45 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
                     </div>

@@ -14,7 +14,7 @@ export default function UnauthorizedPage() {
         <div className="space-y-3">
           <a
             href="/"
-            className="block w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors"
+            className="block w-full bg-primary text-primary-foreground py-2 px-4 rounded-lg hover:bg-primary/90 transition-colors"
           >
             กลับหน้าหลัก
           </a>
