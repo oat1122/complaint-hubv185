@@ -11,7 +11,7 @@ import {
   MessageCircle,
   Bell
 } from "lucide-react";
-import { cn } from "@/lib/cn";
+import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { useNotificationStore } from "@/lib/stores/notification";
 
