@@ -19,12 +19,19 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get('limit') || '20');
     const unreadOnly = searchParams.get('unreadOnly') === 'true';
 
+    const userId = session.user.id;
+
     const skip = (page - 1) * limit;
 
     // Build where clause
     const where: any = {};
     if (unreadOnly) {
-      where.read = false;
+      where.userNotifications = {
+        none: {
+          userId,
+          read: true,
+        },
+      };
     }
 
     // Fetch notifications
@@ -36,9 +43,21 @@ export async function GET(request: NextRequest) {
         },
         skip,
         take: limit,
+        include: {
+          userNotifications: {
+            where: { userId },
+            select: { read: true },
+          },
+        },
       }),
       prisma.notification.count({ where }),
-      prisma.notification.count({ where: { read: false } }),
+      prisma.notification.count({
+        where: {
+          userNotifications: {
+            none: { userId, read: true },
+          },
+        },
+      }),
     ]);
 
     // Get recent complaints for system alerts
@@ -92,10 +111,20 @@ export async function GET(request: NextRequest) {
       });
     }
 
+    const mapped = notifications.map((n) => ({
+      id: n.id,
+      title: n.title,
+      message: n.message,
+      type: n.type,
+      complaintId: n.complaintId,
+      read: n.userNotifications[0]?.read ?? false,
+      createdAt: n.createdAt,
+    }));
+
     const totalPages = Math.ceil(totalCount / limit);
 
     return NextResponse.json({
-      notifications,
+      notifications: mapped,
       systemAlerts,
       recentComplaints,
       stats: {
@@ -137,14 +166,15 @@ export async function PATCH(request: NextRequest) {
     const { notificationId, markAllAsRead } = body;
 
     if (markAllAsRead) {
-      // Mark all notifications as read
-      await prisma.notification.updateMany({
-        where: {
-          read: false,
-        },
-        data: {
-          read: true,
-        },
+      // Mark all notifications as read for this user
+      const ids = await prisma.notification.findMany({ select: { id: true } });
+      await prisma.userNotification.createMany({
+        data: ids.map((n) => ({ userId: session.user.id, notificationId: n.id, read: true })),
+        skipDuplicates: true,
+      });
+      await prisma.userNotification.updateMany({
+        where: { userId: session.user.id, read: false },
+        data: { read: true },
       });
 
       return NextResponse.json({
@@ -153,11 +183,17 @@ export async function PATCH(request: NextRequest) {
       });
     } else if (notificationId) {
       // Mark specific notification as read
-      await prisma.notification.update({
+      await prisma.userNotification.upsert({
         where: {
-          id: notificationId,
+          userId_notificationId: {
+            userId: session.user.id,
+            notificationId,
+          },
         },
-        data: {
+        update: { read: true },
+        create: {
+          userId: session.user.id,
+          notificationId,
           read: true,
         },
       });

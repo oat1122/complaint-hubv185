@@ -6,10 +6,12 @@ interface NotificationState {
     title: string;
     message: string;
     type: 'info' | 'success' | 'warning' | 'error';
+    complaintId?: string;
     read: boolean;
     createdAt: Date;
   }>;
   unreadCount: number;
+  setNotifications: (notifications: NotificationState['notifications']) => void;
   addNotification: (notification: Omit<NotificationState['notifications'][0], 'id' | 'createdAt' | 'read'>) => void;
   markAsRead: (id: string) => void;
   markAllAsRead: () => void;
@@ -19,6 +21,12 @@ interface NotificationState {
 export const useNotificationStore = create<NotificationState>((set, get) => ({
   notifications: [],
   unreadCount: 0,
+
+  setNotifications: (notifications) =>
+    set(() => ({
+      notifications,
+      unreadCount: notifications.filter((n) => !n.read).length,
+    })),
   
   addNotification: (notification) => {
     const newNotification = {

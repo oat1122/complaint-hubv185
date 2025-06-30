@@ -105,6 +105,7 @@ export async function POST(request: NextRequest) {
         title: 'เรื่องร้องเรียนใหม่',
         message: `มีเรื่องร้องเรียนใหม่: ${sanitizedTitle}`,
         type: 'info',
+        complaintId: complaint.id,
       },
     });
 

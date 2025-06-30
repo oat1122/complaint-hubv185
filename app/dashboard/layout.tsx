@@ -7,6 +7,7 @@ import { Sidebar, MobileNavToggle } from "@/components/dashboard/Sidebar";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Bell, User, Settings, Search } from "lucide-react";
+import NotificationBell from "@/components/dashboard/NotificationBell";
 
 export default function DashboardLayout({
   children,
@@ -99,12 +100,7 @@ export default function DashboardLayout({
                 <Search className="w-5 h-5" />
               </Button>
 
-              <Button variant="ghost" size="sm" className="relative tap-target">
-                <Bell className="w-5 h-5" />
-                <Badge className="absolute -top-1 -right-1 bg-red-500 text-white text-xs min-w-[16px] h-4 flex items-center justify-center p-0">
-                  3
-                </Badge>
-              </Button>
+              <NotificationBell />
 
               <Button variant="ghost" size="sm" className="tap-target">
                 <div className="w-6 h-6 bg-gradient-primary rounded-full flex items-center justify-center">
@@ -131,12 +127,7 @@ export default function DashboardLayout({
                 />
               </div>
 
-              <Button variant="ghost" size="sm" className="relative">
-                <Bell className="w-5 h-5" />
-                <Badge className="absolute -top-1 -right-1 bg-red-500 text-white text-xs min-w-[16px] h-4 flex items-center justify-center p-0">
-                  3
-                </Badge>
-              </Button>
+              <NotificationBell />
 
               <div className="flex items-center space-x-3 pl-4 border-l border-gray-200 dark:border-gray-700">
                 <div className="text-right">

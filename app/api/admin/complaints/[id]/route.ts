@@ -72,6 +72,7 @@ export async function PATCH(
           title: 'อัปเดตสถานะข้อร้องเรียน',
           message: `ข้อร้องเรียน "${existingComplaint.title}" มีการเปลี่ยนสถานะเป็น "${validatedData.status}"`,
           type: 'status_update',
+          complaintId: existingComplaint.id,
         },
       });
     }

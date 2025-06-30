@@ -11,16 +11,17 @@ datasource db {
 }
 
 model Complaint {
-  id          String     @id @default(cuid())
-  title       String     @db.VarChar(255)
-  description String     @db.Text
-  category    Category   @default(OTHER)
-  priority    Priority   @default(MEDIUM)
-  trackingId  String     @unique @db.VarChar(20)
-  status      Status     @default(NEW)
-  attachments Attachment[]
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
+  id           String         @id @default(cuid())
+  title        String         @db.VarChar(255)
+  description  String         @db.Text
+  category     Category       @default(OTHER)
+  priority     Priority       @default(MEDIUM)
+  trackingId   String         @unique @db.VarChar(20)
+  status       Status         @default(NEW)
+  attachments  Attachment[]
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  Notification Notification[]
 
   @@index([status])
   @@index([category])
@@ -55,22 +56,46 @@ model User {
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
 
+  notifications UserNotification[]
+
   @@index([role])
   @@index([isActive])
   @@map("users")
 }
 
 model Notification {
-  id        String   @id @default(cuid())
-  title     String
-  message   String
-  type      String   @default("info")
-  read      Boolean  @default(false)
-  createdAt DateTime @default(now())
+  id          String   @id @default(cuid())
+  title       String
+  message     String
+  type        String   @default("info")
+  read        Boolean  @default(false)
+  complaintId String?
+  createdAt   DateTime @default(now())
+
+  complaint Complaint? @relation(fields: [complaintId], references: [id])
+
+  userNotifications UserNotification[]
 
   @@index([read])
   @@index([createdAt])
+  @@index([complaintId])
   @@map("notifications")
+}
+
+model UserNotification {
+  id             String   @id @default(cuid())
+  userId         String
+  notificationId String
+  read           Boolean  @default(false)
+  createdAt      DateTime @default(now())
+
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  notification Notification @relation(fields: [notificationId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, notificationId])
+  @@index([userId])
+  @@index([notificationId])
+  @@map("user_notifications")
 }
 
 // Enums for better data integrity
@@ -95,14 +120,14 @@ enum Role {
 }
 
 enum Category {
-  TECHNICAL           // เทคนิค
-  PERSONNEL           // บุคคล
-  ENVIRONMENT         // สภาพแวดล้อม
-  EQUIPMENT           // อุปกรณ์
-  SAFETY              // ความปลอดภัย
-  FINANCIAL           // การเงิน
-  STRUCTURE_SYSTEM    // โครงสร้างและระบบการทำงาน
-  WELFARE_SERVICES    // สวัสดิการและบริการ
-  PROJECT_IDEA        // เสนอโปรเจค-ไอเดีย
-  OTHER               // อื่นๆ
+  TECHNICAL // เทคนิค
+  PERSONNEL // บุคคล
+  ENVIRONMENT // สภาพแวดล้อม
+  EQUIPMENT // อุปกรณ์
+  SAFETY // ความปลอดภัย
+  FINANCIAL // การเงิน
+  STRUCTURE_SYSTEM // โครงสร้างและระบบการทำงาน
+  WELFARE_SERVICES // สวัสดิการและบริการ
+  PROJECT_IDEA // เสนอโปรเจค-ไอเดีย
+  OTHER // อื่นๆ
 }
