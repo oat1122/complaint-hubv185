@@ -1,60 +1,28 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
-import { z } from 'zod';
-
-// Query parameter validation schema
-const QuerySchema = z.object({
-  page: z.string().optional().default('1'),
-  limit: z.string().optional().default('10'),
-  status: z.enum(['NEW', 'IN_PROGRESS', 'RESOLVED', 'CLOSED', 'ARCHIVED']).optional(),
-  category: z.enum([
-    'TECHNICAL', 'PERSONNEL', 'ENVIRONMENT', 'EQUIPMENT', 'SAFETY', 
-    'FINANCIAL', 'STRUCTURE_SYSTEM', 'WELFARE_SERVICES', 'PROJECT_IDEA', 'OTHER'
-  ]).optional(),
-  priority: z.enum(['LOW', 'MEDIUM', 'HIGH', 'URGENT']).optional(),
-  search: z.string().optional(),
-  sortBy: z.enum(['createdAt', 'updatedAt', 'priority', 'status']).optional().default('createdAt'),
-  sortOrder: z.enum(['asc', 'desc']).optional().default('desc'),
-});
+import { ComplaintQuerySchema, executeWithRetry, createErrorResponse, createSuccessResponse } from '@/lib/rateLimiting';
 
 export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
 
-    if (!session || (session.user.role !== "ADMIN" && session.user.role !== "VIEWER")) {
-      return NextResponse.json(
-        { error: 'ไม่ได้รับอนุญาต' },
-        { status: 401 }
-      );
+    if (!session || (session.user.role !== 'ADMIN' && session.user.role !== 'VIEWER')) {
+      return createErrorResponse('ไม่ได้รับอนุญาต', 401);
     }
 
     const { searchParams } = new URL(request.url);
     const queryParams = Object.fromEntries(searchParams.entries());
-    
-    const {
-      page,
-      limit,
-      status,
-      category,
-      priority,
-      search,
-      sortBy,
-      sortOrder
-    } = QuerySchema.parse(queryParams);
+    const validatedQuery = ComplaintQuerySchema.parse(queryParams);
+    const { page, limit, status, category, priority, search, sortBy, sortOrder } = validatedQuery;
+    const skip = (page - 1) * limit;
 
-    const pageNumber = parseInt(page);
-    const limitNumber = parseInt(limit);
-    const skip = (pageNumber - 1) * limitNumber;
-
-    // Build where clause
     const where: any = {};
-    
     if (status) where.status = status;
     if (category) where.category = category;
     if (priority) where.priority = priority;
-    
+
     if (search) {
       where.OR = [
         { title: { contains: search, mode: 'insensitive' } },
@@ -63,56 +31,100 @@ export async function GET(request: NextRequest) {
       ];
     }
 
-    // Build orderBy clause
     const orderBy: any = {};
     orderBy[sortBy] = sortOrder;
 
-    // Fetch complaints with pagination
-    const [complaints, totalCount] = await Promise.all([
-      prisma.complaint.findMany({
-        where,
-        orderBy,
-        skip,
-        take: limitNumber,
-        include: {
-          attachments: {
-            select: {
-              id: true,
-              filename: true,
-              fileType: true,
-              fileSize: true,
+    const [complaints, totalCount] = await executeWithRetry(async () => {
+      return Promise.all([
+        prisma.complaint.findMany({
+          where,
+          orderBy,
+          skip,
+          take: limit,
+          include: {
+            attachments: {
+              select: {
+                id: true,
+                filename: true,
+                fileType: true,
+                fileSize: true,
+              },
             },
           },
-        },
-      }),
-      prisma.complaint.count({ where }),
-    ]);
+        }),
+        prisma.complaint.count({ where }),
+      ]);
+    });
 
-    const totalPages = Math.ceil(totalCount / limitNumber);
+    const totalPages = Math.ceil(totalCount / limit);
 
-    return NextResponse.json({
+    const response = {
       complaints,
       pagination: {
-        page: pageNumber,
-        limit: limitNumber,
+        page,
+        limit,
         totalCount,
         totalPages,
-        hasNext: pageNumber < totalPages,
-        hasPrev: pageNumber > 1,
+        hasNext: page < totalPages,
+        hasPrev: page > 1,
       },
       filters: {
         status,
         category,
         priority,
         search,
+        sortBy,
+        sortOrder,
       },
-    });
+      timestamp: new Date().toISOString(),
+    };
 
+    return createSuccessResponse(response);
   } catch (error) {
     console.error('Error fetching admin complaints:', error);
-    return NextResponse.json(
-      { error: 'เกิดข้อผิดพลาดในการดึงข้อมูล' },
-      { status: 500 }
-    );
+    if (error instanceof Error && error.name === 'ZodError') {
+      return createErrorResponse('ข้อมูลการค้นหาไม่ถูกต้อง', 400);
+    }
+    return createErrorResponse('เกิดข้อผิดพลาดในการดึงข้อมูล', 500);
+  }
+}
+
+export async function POST(request: NextRequest) {
+  try {
+    const session = await getServerSession(authOptions);
+
+    if (!session || (session.user.role !== 'ADMIN' && session.user.role !== 'VIEWER')) {
+      return createErrorResponse('ไม่ได้รับอนุญาต', 401);
+    }
+
+    const body = await request.json();
+    const { groupBy, filters } = body;
+
+    if (!groupBy || !['status', 'category', 'priority'].includes(groupBy)) {
+      return createErrorResponse('กรุณาระบุประเภทการจัดกลุ่มที่ถูกต้อง', 400);
+    }
+
+    const where = filters || {};
+
+    const stats = await executeWithRetry(async () => {
+      return prisma.complaint.groupBy({
+        by: [groupBy],
+        _count: { id: true },
+        where,
+        orderBy: { _count: { id: 'desc' } },
+      });
+    });
+
+    return createSuccessResponse({
+      stats: stats.map((item: any) => ({
+        [groupBy]: item[groupBy],
+        count: item._count.id,
+      })),
+      groupBy,
+      filters,
+    });
+  } catch (error) {
+    console.error('Error fetching complaint stats:', error);
+    return createErrorResponse('เกิดข้อผิดพลาดในการดึงสถิติ', 500);
   }
 }

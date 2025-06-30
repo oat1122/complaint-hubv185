@@ -10,7 +10,7 @@ npm install
 ### 2. ตั้งค่าฐานข้อมูล
 สร้างฐานข้อมูล MySQL และแก้ไข `.env` file:
 ```
-DATABASE_URL="mysql://username:password@localhost:3306/complaintdb"
+DATABASE_URL="mysql://root@localhost:3307/complaintdbv2"
 NEXTAUTH_SECRET="your-secret-key"
 NEXTAUTH_URL="http://localhost:3000"
 ```
