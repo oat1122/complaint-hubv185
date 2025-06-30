@@ -133,7 +133,7 @@ function MobileSidebarContent({
       <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
         <div className="flex items-center space-x-3">
           <div className="p-2 bg-gradient-primary rounded-xl shadow-soft">
-            <MessageCircle className="w-6 h-6 text-white" />
+            <MessageCircle className="w-6 h-6 text-primary" />
           </div>
           <div>
             <h1 className="text-xl font-bold text-gray-900 dark:text-white">Complaint Hub</h1>
@@ -191,7 +191,7 @@ function MobileSidebarContent({
                 className={cn(
                   "group flex items-center justify-between px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 tap-target",
                   isActive
-                    ? "bg-gradient-primary text-white shadow-medium"
+                    ? "bg-gradient-primary text-primary shadow-medium"
                     : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white"
                 )}
               >
@@ -202,7 +202,7 @@ function MobileSidebarContent({
                     <div
                       className={cn(
                         "text-xs truncate mt-0.5",
-                        isActive ? "text-white/80" : "text-gray-500 dark:text-gray-400"
+                        isActive ? "text-primary/80" : "text-gray-500 dark:text-gray-400"
                       )}
                     >
                       {item.description}
@@ -218,7 +218,7 @@ function MobileSidebarContent({
                   <ChevronRight
                     className={cn(
                       "w-4 h-4 transition-transform",
-                      isActive ? "text-white" : "text-gray-400"
+                      isActive ? "text-primary" : "text-gray-400"
                     )}
                   />
                 </div>
@@ -285,7 +285,7 @@ function DesktopSidebarContent({
       <div className="flex items-center px-6 py-6 border-b border-gray-200 dark:border-gray-700">
         <div className="flex items-center space-x-3">
           <div className="p-2 bg-gradient-primary rounded-xl shadow-soft">
-            <MessageCircle className="w-7 h-7 text-white" />
+            <MessageCircle className="w-7 h-7 text-primary" />
           </div>
           <div>
             <h1 className="text-xl font-bold text-gray-900 dark:text-white">Complaint Hub</h1>
@@ -333,7 +333,7 @@ function DesktopSidebarContent({
               className={cn(
                 "group flex items-center justify-between px-3 py-3 rounded-xl text-sm font-medium transition-all duration-200 hover-lift",
                 isActive
-                  ? "bg-gradient-primary text-white shadow-medium"
+                  ? "bg-gradient-primary text-primary shadow-medium"
                   : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white"
               )}
             >

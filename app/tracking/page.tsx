@@ -141,7 +141,7 @@ export default function TrackingPage() {
           <div className="flex-responsive justify-between">
             <div className="flex items-center space-x-3 animate-slide-in-left">
               <div className="p-2 bg-gradient-primary rounded-xl shadow-soft">
-                <MessageCircle className="w-6 h-6 text-white" />
+                <MessageCircle className="w-6 h-6 text-primary" />
               </div>
               <div>
                 <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Complaint Hub</h1>
