@@ -28,6 +28,7 @@ import {
   CheckCircle,
   Paperclip
 } from "lucide-react";
+import { LoadingSkeleton, EmptyState, ComplaintDetailModal } from "@/components/complaints";
 import { formatDate, getPriorityColor, getStatusColor, getPriorityLabel, getStatusLabel } from "@/lib/utils";
 import { STATUS_LEVELS, PRIORITY_LEVELS, COMPLAINT_CATEGORIES } from "@/lib/constants";
 
@@ -58,133 +59,6 @@ interface FilterState {
   sortOrder: 'asc' | 'desc';
 }
 
-// Loading Skeleton Component
-function LoadingSkeleton() {
-  return (
-    <div className="space-y-4">
-      {[1, 2, 3, 4, 5].map((i) => (
-        <div key={i} className="animate-pulse">
-          <div className="flex space-x-4 p-4">
-            <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-20"></div>
-            <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-48"></div>
-            <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-24"></div>
-            <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-20"></div>
-            <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-16"></div>
-            <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-24"></div>
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-}
-
-// Empty State Component
-function EmptyState() {
-  return (
-    <div className="text-center py-12">
-      <MessageSquare className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-      <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
-        ไม่พบเรื่องร้องเรียน
-      </h3>
-      <p className="text-gray-500 dark:text-gray-400">
-        ไม่มีเรื่องร้องเรียนที่ตรงกับเงื่อนไขการค้นหา
-      </p>
-    </div>
-  );
-}
-
-// Complaint Detail Modal Component
-function ComplaintDetailModal({ 
-  complaint, 
-  onClose, 
-  onUpdateStatus 
-}: { 
-  complaint: Complaint | null; 
-  onClose: () => void; 
-  onUpdateStatus: (id: string, status: string) => void;
-}) {
-  if (!complaint) return null;
-
-  return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-large max-w-4xl w-full max-h-[90vh] overflow-y-auto animate-fade-in-scale">
-        <div className="p-6 border-b border-gray-200 dark:border-gray-700">
-          <div className="flex items-center justify-between">
-            <h2 className="text-xl font-bold text-gray-900 dark:text-white">
-              รายละเอียดเรื่องร้องเรียน
-            </h2>
-            <Button variant="ghost" size="sm" onClick={onClose}>
-              ✕
-            </Button>
-          </div>
-        </div>
-        <div className="p-6">
-          <div className="space-y-4">
-            <div>
-              <label className="text-sm font-medium text-gray-600 dark:text-gray-400">รหัสติดตาม</label>
-              <p className="font-mono text-lg">{complaint.trackingId}</p>
-            </div>
-            <div>
-              <label className="text-sm font-medium text-gray-600 dark:text-gray-400">หัวข้อ</label>
-              <p className="text-lg font-medium">{complaint.title}</p>
-            </div>
-            <div>
-              <label className="text-sm font-medium text-gray-600 dark:text-gray-400">รายละเอียด</label>
-              <p className="text-gray-700 dark:text-gray-300">{complaint.description}</p>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
-                <label className="text-sm font-medium text-gray-600 dark:text-gray-400">ประเภท</label>
-                <div className="mt-1">
-                  <CategoryBadge category={complaint.category} />
-                </div>
-              </div>
-              <div>
-                <label className="text-sm font-medium text-gray-600 dark:text-gray-400">ความสำคัญ</label>
-                <div className="mt-1">
-                  <Badge className={getPriorityColor(complaint.priority)}>
-                    {getPriorityLabel(complaint.priority)}
-                  </Badge>
-                </div>
-              </div>
-              <div>
-                <label className="text-sm font-medium text-gray-600 dark:text-gray-400">สถานะ</label>
-                <div className="mt-1">
-                  <Badge className={getStatusColor(complaint.status)}>
-                    {getStatusLabel(complaint.status)}
-                  </Badge>
-                </div>
-              </div>
-            </div>
-            {complaint.attachments.length > 0 && (
-              <div>
-                <label className="text-sm font-medium text-gray-600 dark:text-gray-400">ไฟล์แนบ</label>                 <div className="mt-2 space-y-2">
-                   {complaint.attachments.map((attachment) => (
-                     <div key={attachment.id} className="flex items-center space-x-3 p-3 border rounded-lg">
-                       <Paperclip className="w-4 h-4" />
-                       <span className="flex-1">{attachment.filename}</span>
-                       <Button size="sm" variant="outline" asChild>
-                         <a
-                           href={attachment.url}
-                           target="_blank"
-                           rel="noopener noreferrer"
-                           className="flex items-center space-x-1"
-                         >
-                           <Eye className="w-4 h-4" />
-                           <span>เปิดไฟล์</span>
-                         </a>
-                       </Button>
-                     </div>
-                   ))}
-                 </div>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
 
 export default function ComplaintsPage() {
   const [complaints, setComplaints] = useState<Complaint[]>([]);
