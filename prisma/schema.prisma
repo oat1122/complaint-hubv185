@@ -65,12 +65,27 @@ model Notification {
   title     String
   message   String
   type      String   @default("info")
-  read      Boolean  @default(false)
+  complaintId String?
+  complaint   Complaint? @relation(fields: [complaintId], references: [id])
   createdAt DateTime @default(now())
+  recipients UserNotification[]
 
-  @@index([read])
   @@index([createdAt])
   @@map("notifications")
+}
+
+model UserNotification {
+  id             String   @id @default(cuid())
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId         String
+  notification   Notification @relation(fields: [notificationId], references: [id], onDelete: Cascade)
+  notificationId String
+  read           Boolean  @default(false)
+  createdAt      DateTime @default(now())
+
+  @@unique([userId, notificationId])
+  @@index([userId, read])
+  @@map("user_notifications")
 }
 
 // Enums for better data integrity

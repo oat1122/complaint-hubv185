@@ -65,6 +65,7 @@ export interface NotificationResponse {
   message: string;
   type: 'info' | 'success' | 'warning' | 'error';
   read: boolean;
+  complaintId?: string;
   createdAt: string;
 }
 
