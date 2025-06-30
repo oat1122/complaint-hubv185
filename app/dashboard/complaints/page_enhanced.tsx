@@ -164,8 +164,16 @@ function ComplaintDetailModal({
                     <div key={attachment.id} className="flex items-center space-x-3 p-3 border rounded-lg">
                       <Paperclip className="w-4 h-4" />
                       <span className="flex-1">{attachment.filename}</span>
-                      <Button size="sm" variant="outline">
-                        ดาวน์โหลด
+                      <Button size="sm" variant="outline" asChild>
+                        <a
+                          href={attachment.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center space-x-1"
+                        >
+                          <Eye className="w-4 h-4" />
+                          <span>เปิดไฟล์</span>
+                        </a>
                       </Button>
                     </div>
                   ))}
