@@ -1,8 +1,35 @@
 import { withAuth } from "next-auth/middleware";
-import { NextResponse } from "next/server";
+import { NextResponse, NextRequest } from "next/server";
+
+const rateLimit = new Map<string, { count: number; resetTime: number }>();
+
+function isRateLimited(ip: string, limit: number = 100): boolean {
+  const now = Date.now();
+  const windowMs = 15 * 60 * 1000; // 15 minutes
+
+  if (!rateLimit.has(ip)) {
+    rateLimit.set(ip, { count: 1, resetTime: now + windowMs });
+    return false;
+  }
+
+  const record = rateLimit.get(ip)!;
+  if (now > record.resetTime) {
+    record.count = 1;
+    record.resetTime = now + windowMs;
+    return false;
+  }
+
+  record.count++;
+  return record.count > limit;
+}
 
 export default withAuth(
   function middleware(req) {
+    const ip = req.ip ?? "127.0.0.1";
+    if (isRateLimited(ip)) {
+      return new NextResponse("Too Many Requests", { status: 429 });
+    }
+
     const token = req.nextauth.token;
     
     // Check if user is trying to access dashboard
@@ -35,7 +62,14 @@ export default withAuth(
       }
     }
 
-    return NextResponse.next();
+    const response = NextResponse.next();
+    response.headers.set("X-Frame-Options", "DENY");
+    response.headers.set("X-Content-Type-Options", "nosniff");
+    response.headers.set(
+      "Referrer-Policy",
+      "strict-origin-when-cross-origin"
+    );
+    return response;
   },
   {
     callbacks: {
