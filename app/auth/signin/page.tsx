@@ -52,12 +52,12 @@ export default function SignInPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center px-4">
+    <div className="min-h-screen bg-gradient-to-br from-[#fbf5f5] to-[#ffeaea] flex items-center justify-center px-4">
       <div className="w-full max-w-md">
         {/* Header */}
         <div className="text-center mb-8">
           <div className="flex items-center justify-center mb-4">
-            <MessageCircle className="w-12 h-12 text-blue-600" />
+            <MessageCircle className="w-12 h-12 text-primary" />
           </div>
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Complaint Hub</h1>
           <p className="text-gray-600">เข้าสู่ระบบจัดการเรื่องร้องเรียน</p>
@@ -117,7 +117,7 @@ export default function SignInPage() {
         <div className="text-center mt-6">
           <a
             href="/"
-            className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+            className="text-primary hover:text-primary/80 text-sm font-medium"
           >
             ← กลับไปหน้าแรก
           </a>

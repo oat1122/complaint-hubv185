@@ -33,7 +33,7 @@ export function CategoryStats({ data }: CategoryStatsProps) {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <TrendingUp className="w-5 h-5 text-blue-600" />
+            <TrendingUp className="w-5 h-5 text-primary" />
             สถิติตามประเภทปัญหา
           </CardTitle>
         </CardHeader>
@@ -136,7 +136,7 @@ export function CategorySummary({ data }: CategoryStatsProps) {
       
       <Card>
         <CardContent className="p-4">
-          <div className="text-2xl font-bold text-blue-600">{avgResolutionTime}h</div>
+          <div className="text-2xl font-bold text-primary">{avgResolutionTime}h</div>
           <p className="text-xs text-muted-foreground">เวลาแก้ไขเฉลี่ย</p>
         </CardContent>
       </Card>

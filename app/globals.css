@@ -9,9 +9,9 @@
   --card-foreground: 222.2 84% 4.9%;
   --popover: 0 0% 100%;
   --popover-foreground: 222.2 84% 4.9%;
-  --primary: 221.2 83.2% 53.3%;
-  --primary-foreground: 210 40% 98%;
-  --secondary: 210 40% 96%;
+  --primary: 0 77% 38%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 0 43% 97%;
   --secondary-foreground: 222.2 84% 4.9%;
   --muted: 210 40% 96%;
   --muted-foreground: 215.4 16.3% 46.9%;
@@ -21,12 +21,12 @@
   --destructive-foreground: 210 40% 98%;
   --border: 214.3 31.8% 91.4%;
   --input: 214.3 31.8% 91.4%;
-  --ring: 221.2 83.2% 53.3%;
+  --ring: 0 77% 38%;
   --radius: 0.75rem;
   
   /* Enhanced variables for modern design */
-  --gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  --gradient-secondary: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  --gradient-primary: linear-gradient(135deg, #ab1616 0%, #750c0c 100%);
+  --gradient-secondary: linear-gradient(135deg, #fbf5f5 0%, #ffdede 100%);
   --gradient-success: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
   --shadow-soft: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
   --shadow-medium: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
@@ -41,9 +41,9 @@
   --card-foreground: 210 40% 98%;
   --popover: 222.2 84% 4.9%;
   --popover-foreground: 210 40% 98%;
-  --primary: 217.2 91.2% 59.8%;
-  --primary-foreground: 222.2 84% 4.9%;
-  --secondary: 217.2 32.6% 17.5%;
+  --primary: 0 77% 38%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 0 43% 20%;
   --secondary-foreground: 210 40% 98%;
   --muted: 217.2 32.6% 17.5%;
   --muted-foreground: 215 20.2% 65.1%;
@@ -53,7 +53,7 @@
   --destructive-foreground: 210 40% 98%;
   --border: 217.2 32.6% 17.5%;
   --input: 217.2 32.6% 17.5%;
-  --ring: 224.3 76.3% 94.1%;
+  --ring: 0 77% 38%;
 }
 
 * {
@@ -270,7 +270,7 @@ body {
   
   /* Enhanced button styles */
   .btn-primary {
-    @apply bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-medium shadow-lg hover:shadow-xl transition-all duration-300;
+    @apply bg-gradient-to-r from-[#ab1616] to-[#750c0c] hover:from-[#b41b1b] hover:to-[#8a1111] text-white font-medium shadow-lg hover:shadow-xl transition-all duration-300;
   }
   
   .btn-secondary {
@@ -279,7 +279,7 @@ body {
   
   /* Enhanced form inputs */
   .input-modern {
-    @apply transition-all duration-300 border-gray-200 dark:border-gray-700 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 dark:focus:ring-blue-800 rounded-lg;
+    @apply transition-all duration-300 border-gray-200 dark:border-gray-700 focus:border-primary focus:ring-2 focus:ring-primary/20 dark:focus:ring-primary/40 rounded-lg;
   }
   
   /* Loading states */
@@ -349,6 +349,6 @@ body {
   }
   
   .progress-fill {
-    @apply h-full bg-gradient-to-r from-blue-500 to-purple-500 transition-all duration-300 ease-out;
+    @apply h-full bg-gradient-to-r from-[#ab1616] to-[#750c0c] transition-all duration-300 ease-out;
   }
 }

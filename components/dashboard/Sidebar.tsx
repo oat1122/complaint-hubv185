@@ -35,14 +35,14 @@ export function Sidebar() {
     <div className="flex flex-col w-64 bg-white shadow-lg">
       {/* Header */}
       <div className="flex items-center px-6 py-4 border-b">
-        <MessageCircle className="w-8 h-8 text-blue-600 mr-2" />
+        <MessageCircle className="w-8 h-8 text-primary mr-2" />
         <h1 className="text-xl font-bold text-gray-900">Complaint Hub</h1>
       </div>
 
       {/* User Info */}
       <div className="px-6 py-4 border-b bg-gray-50">
         <div className="flex items-center">
-          <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center">
+          <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center">
             <span className="text-white font-medium">
               {session?.user?.email?.charAt(0).toUpperCase()}
             </span>
@@ -76,7 +76,7 @@ export function Sidebar() {
               className={cn(
                 "flex items-center px-3 py-2 rounded-lg text-sm font-medium transition-colors",
                 isActive
-                  ? "bg-blue-100 text-blue-700"
+                  ? "bg-primary/10 text-primary"
                   : "text-gray-700 hover:bg-gray-100"
               )}
             >
