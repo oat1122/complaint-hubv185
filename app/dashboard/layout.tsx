@@ -100,7 +100,9 @@ export default function DashboardLayout({
                 <Search className="w-5 h-5" />
               </Button>
 
-              <NotificationBell />
+              {(session.user.role === 'ADMIN' || session.user.role === 'VIEWER') && (
+                <NotificationBell />
+              )}
 
               <Button variant="ghost" size="sm" className="tap-target">
                 <div className="w-6 h-6 bg-gradient-primary rounded-full flex items-center justify-center">
@@ -127,7 +129,9 @@ export default function DashboardLayout({
                 />
               </div>
 
-              <NotificationBell />
+              {(session.user.role === 'ADMIN' || session.user.role === 'VIEWER') && (
+                <NotificationBell />
+              )}
 
               <div className="flex items-center space-x-3 pl-4 border-l border-gray-200 dark:border-gray-700">
                 <div className="text-right">

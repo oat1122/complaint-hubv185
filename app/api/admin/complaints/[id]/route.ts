@@ -65,22 +65,7 @@ export async function PATCH(
       },
     });
 
-    // Create notification for status change
-    if (validatedData.status) {
-      const notif = await prisma.notification.create({
-        data: {
-          title: 'อัปเดตสถานะข้อร้องเรียน',
-          message: `ข้อร้องเรียน "${existingComplaint.title}" มีการเปลี่ยนสถานะเป็น "${validatedData.status}"`,
-          type: 'status_update',
-          complaintId: existingComplaint.id,
-        },
-      });
-
-      const users = await prisma.user.findMany({ where: { isActive: true } });
-      await prisma.userNotification.createMany({
-        data: users.map((u) => ({ userId: u.id, notificationId: notif.id })),
-      });
-    }
+    // No notification on status change as per requirements
 
     return NextResponse.json({
       success: true,
