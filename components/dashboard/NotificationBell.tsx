@@ -12,6 +12,7 @@ export default function NotificationBell() {
     unreadCount,
     setNotifications,
     markAllAsRead,
+    markAsRead,
   } = useNotificationStore();
   const router = useRouter();
   const [open, setOpen] = useState(false);
@@ -56,19 +57,38 @@ export default function NotificationBell() {
     return () => document.removeEventListener('mousedown', handleClick);
   }, [open]);
 
-  const toggleOpen = async () => {
-    const next = !open;
-    setOpen(next);
-    if (next && unreadCount > 0) {
-      markAllAsRead();
+  const toggleOpen = () => {
+    setOpen((prev) => !prev);
+  };
+
+  const handleMarkAll = async () => {
+    markAllAsRead();
+    try {
+      await fetch("/api/admin/notifications", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ markAllAsRead: true }),
+      });
+    } catch (err) {
+      console.error("Failed to mark notifications as read", err);
+    }
+  };
+
+  const handleNotificationClick = async (n: typeof notifications[0]) => {
+    if (n.complaintId) {
+      router.push(`/dashboard/complaints?view=${n.complaintId}`);
+      setOpen(false);
+    }
+    if (!n.read) {
+      markAsRead(n.id);
       try {
         await fetch("/api/admin/notifications", {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ markAllAsRead: true }),
+          body: JSON.stringify({ notificationId: n.id }),
         });
       } catch (err) {
-        console.error("Failed to mark notifications as read", err);
+        console.error("Failed to mark notification as read", err);
       }
     }
   };
@@ -88,27 +108,35 @@ export default function NotificationBell() {
           {notifications.length === 0 ? (
             <div className="p-4 text-sm text-gray-500 dark:text-gray-400">ไม่มีการแจ้งเตือน</div>
           ) : (
-            <ul className="divide-y divide-gray-200 dark:divide-gray-700">
-              {notifications.map((n) => (
-                <li
-                  key={n.id}
-                  className="p-4 text-sm hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer"
-                  onClick={() => {
-                    if (n.complaintId) {
-                      router.push(`/dashboard/complaints?view=${n.complaintId}`);
-                      setOpen(false);
-                    }
-                  }}
-                >
-                  <p className="font-medium text-gray-900 dark:text-white">{n.title}</p>
-                  <p className="text-gray-600 dark:text-gray-400 text-xs mt-0.5">{n.message}</p>
-                  <p className="text-gray-400 dark:text-gray-500 text-xs mt-1">{formatDate(n.createdAt)}</p>
-                  {n.complaintId && (
-                    <span className="text-primary text-xs underline mt-1 inline-block">ดูรายละเอียด</span>
-                  )}
-                </li>
-              ))}
-            </ul>
+            <>
+              <div className="flex items-center justify-between p-2 border-b border-gray-200 dark:border-gray-700">
+                <span className="text-sm font-medium">การแจ้งเตือน</span>
+                {unreadCount > 0 && (
+                  <button
+                    onClick={handleMarkAll}
+                    className="text-xs text-primary hover:underline"
+                  >
+                    อ่านทั้งหมด
+                  </button>
+                )}
+              </div>
+              <ul className="divide-y divide-gray-200 dark:divide-gray-700">
+                {notifications.map((n) => (
+                  <li
+                    key={n.id}
+                    className={`p-4 text-sm hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer ${n.read ? '' : 'bg-gray-50 dark:bg-gray-700'}`}
+                    onClick={() => handleNotificationClick(n)}
+                  >
+                    <p className="font-medium text-gray-900 dark:text-white">{n.title}</p>
+                    <p className="text-gray-600 dark:text-gray-400 text-xs mt-0.5">{n.message}</p>
+                    <p className="text-gray-400 dark:text-gray-500 text-xs mt-1">{formatDate(n.createdAt)}</p>
+                    {n.complaintId && (
+                      <span className="text-primary text-xs underline mt-1 inline-block">ดูรายละเอียด</span>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            </>
           )}
         </div>
       )}
