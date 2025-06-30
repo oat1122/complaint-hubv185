@@ -345,7 +345,7 @@ export default function ComplaintForm() {
       {/* Progress Bar - Mobile Friendly */}
       <div className="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-soft border border-gray-200 dark:border-gray-700 animate-slide-in">
         <div className="flex items-center justify-between mb-3">
-          <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">ความคืบหน้า</h3>
+          <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">เปอร์เซ็นต์ความสมบูรณ์ของ form</h3>
           <span className="text-sm text-gray-500 dark:text-gray-400">{getFormProgress()}%</span>
         </div>
         <div className="progress-bar">
