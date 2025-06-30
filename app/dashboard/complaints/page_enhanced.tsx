@@ -221,8 +221,8 @@ export default function ComplaintsPage() {
       if (response.ok) {
         const data = await response.json();
         setComplaints(data.complaints || []);
-        setTotalPages(Math.ceil((data.total || 0) / itemsPerPage));
-        setTotalCount(data.total || 0);
+        setTotalPages(Math.ceil((data.pagination?.totalCount || 0) / itemsPerPage));
+        setTotalCount(data.pagination?.totalCount || 0);
       }
     } catch (error) {
       console.error('Error fetching complaints:', error);
