@@ -19,6 +19,7 @@ model Complaint {
   trackingId  String     @unique @db.VarChar(20)
   status      Status     @default(NEW)
   attachments Attachment[]
+  notifications Notification[]
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt
 
@@ -54,6 +55,7 @@ model User {
   lastLogin DateTime?
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
+  userNotifications UserNotification[]
 
   @@index([role])
   @@index([isActive])
