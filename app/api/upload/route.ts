@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { validateFile, saveFile, sanitizeFilename } from '@/utils/fileUpload';
+import { MAX_FILES } from '@/utils/constants';
 
 export async function POST(request: NextRequest) {
   try {
@@ -11,6 +12,13 @@ export async function POST(request: NextRequest) {
     if (!complaintId || files.length === 0) {
       return NextResponse.json(
         { error: 'ข้อมูลไม่ถูกต้อง' },
+        { status: 400 }
+      );
+    }
+
+    if (files.length > MAX_FILES) {
+      return NextResponse.json(
+        { error: `อัพโหลดได้สูงสุด ${MAX_FILES} ไฟล์` },
         { status: 400 }
       );
     }
