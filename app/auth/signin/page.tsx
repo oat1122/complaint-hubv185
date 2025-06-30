@@ -5,7 +5,7 @@ import { signIn, getSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
+import { LoginButton } from "@/components/ui/auth-buttons";
 import { MessageCircle, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 
@@ -106,9 +106,12 @@ export default function SignInPage() {
                 </div>
               )}
 
-              <Button type="submit" className="w-full" disabled={loading}>
-                {loading ? "กำลังเข้าสู่ระบบ..." : "เข้าสู่ระบบ"}
-              </Button>
+              <LoginButton
+                type="submit"
+                className="mx-auto"
+                loading={loading}
+                disabled={loading}
+              />
             </form>
           </CardContent>
         </Card>

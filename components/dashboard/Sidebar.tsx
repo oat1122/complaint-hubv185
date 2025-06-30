@@ -6,13 +6,12 @@ import {
   Home, 
   MessageSquare, 
   BarChart3, 
-  Settings, 
-  LogOut,
+  Settings,
   MessageCircle,
   Bell
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
+import { LogoutButton } from "@/components/ui/auth-buttons";
 import { useNotificationStore } from "@/lib/stores/notification";
 
 const navigation = [
@@ -109,14 +108,7 @@ export function Sidebar() {
 
       {/* Sign Out */}
       <div className="p-4 border-t">
-        <Button
-          onClick={handleSignOut}
-          variant="ghost"
-          className="w-full justify-start text-gray-700 hover:bg-gray-100"
-        >
-          <LogOut className="w-5 h-5 mr-3" />
-          ออกจากระบบ
-        </Button>
+        <LogoutButton onClick={handleSignOut} className="mx-auto" />
       </div>
     </div>
   );
