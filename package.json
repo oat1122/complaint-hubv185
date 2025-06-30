@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "test": "./node_modules/.bin/tsc lib/stores/notification.ts --module commonjs --target ES2017 --outDir build/lib && node --test",
+    "test": "node --test",
     "db:push": "prisma db push",
     "db:seed": "node scripts/seed.js"
   },

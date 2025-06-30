@@ -42,8 +42,7 @@ export const CategoryValidationRules = {
   },
   FINANCIAL: {
     requiredFields: ["amount", "department"],
-    requireApproval: true,
-    notifyRoles: ["ADMIN", "FINANCE_MANAGER"]
+    requireApproval: true
   },
   TECHNICAL: {
     requiredFields: ["systemName", "errorDetails"],

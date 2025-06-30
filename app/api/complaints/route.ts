@@ -99,35 +99,6 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Create notification
-    const notif = await prisma.notification.create({
-      data: {
-        title: 'เรื่องร้องเรียนใหม่',
-        message: `มีเรื่องร้องเรียนใหม่: ${sanitizedTitle}`,
-        type: 'info',
-        complaintId: complaint.id,
-      },
-    });
-
-    // Notify all active admins and viewers
-    const recipients = await prisma.user.findMany({
-      where: { isActive: true, role: { in: ['ADMIN', 'VIEWER'] } },
-    });
-    await prisma.userNotification.createMany({
-      data: recipients.map((u) => ({ userId: u.id, notificationId: notif.id })),
-    });
-
-    // Emit real-time event
-    const { notificationEmitter } = await import('@/lib/notificationEmitter');
-    notificationEmitter.emit('new-notification', {
-      id: notif.id,
-      title: notif.title,
-      message: notif.message,
-      type: notif.type,
-      complaintId: notif.complaintId,
-      createdAt: notif.createdAt,
-      read: false,
-    });
 
     return NextResponse.json({
       success: true,

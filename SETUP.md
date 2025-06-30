@@ -59,7 +59,6 @@ npm run dev
 ### 4. Dashboard (/dashboard)
 - สรุปสถิติระบบ
 - จัดการเรื่องร้องเรียน
-- ระบบ Notification
 
 ## API Endpoints
 
@@ -78,7 +77,6 @@ npm run dev
 - **Authentication**: NextAuth.js
 - **State Management**: Zustand
 - **Form**: React Hook Form + Zod
-- **Notifications**: Sonner
 
 ## โครงสร้างโปรเจค
 
@@ -115,7 +113,6 @@ prisma/
 ## การพัฒนาต่อ
 
 1. เพิ่มหน้าจัดการเรื่องร้องเรียนใน Dashboard
-2. ระบบ Email Notification
 3. Chart และ Analytics
 4. Export PDF Report
 5. ระบบ Comment/Response
