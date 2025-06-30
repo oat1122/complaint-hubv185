@@ -14,16 +14,17 @@ const ExpandButton = React.forwardRef<HTMLButtonElement, ExpandButtonProps>(
       <button
         ref={ref}
         className={cn(
-          "group relative flex items-center justify-start overflow-hidden rounded-full w-12 h-12 transition-all duration-300 shadow-md",
+          "group relative flex items-center justify-start overflow-hidden rounded-full w-12 h-12 transition-all duration-500 ease-in-out shadow-lg hover:shadow-xl transform hover:scale-105 hover:w-40",
           colorClass,
+          "hover:bg-opacity-90",
           className
         )}
         {...props}
       >
-        <span className="flex items-center justify-center w-full transition-all duration-300 group-hover:w-[30%] group-hover:pl-4">
+        <span className="flex items-center justify-center w-12 h-12 transition-all duration-500 ease-in-out group-hover:w-12 group-hover:flex-shrink-0 text-white">
           {icon}
         </span>
-        <span className="absolute right-0 opacity-0 w-0 text-white text-sm font-semibold transition-all duration-300 group-hover:w-[70%] group-hover:opacity-100 group-hover:pr-3">
+        <span className="absolute left-12 opacity-0 w-0 text-white text-sm font-semibold whitespace-nowrap transition-all duration-500 ease-in-out group-hover:opacity-100 group-hover:w-28 overflow-hidden">
           {label}
         </span>
       </button>
@@ -40,9 +41,9 @@ export const LoginButton = React.forwardRef<HTMLButtonElement, LoginButtonProps>
   ({ loading, className, ...props }, ref) => (
     <ExpandButton
       ref={ref}
-      label={loading ? "\u0e01\u0e33\u0e25\u0e31\u0e07\u0e40\u0e02\u0e49\u0e32\u0e2a\u0e39\u0e48\u0e23\u0e30\u0e1a\u0e1a..." : "\u0e40\u0e02\u0e49\u0e32\u0e2a\u0e39\u0e48\u0e23\u0e30\u0e1a\u0e1a"}
-      icon={<LogIn className="w-4 h-4" />}
-      colorClass="bg-green-500"
+      label={loading ? "กำลังเข้าสู่ระบบ..." : "เข้าสู่ระบบ"}
+      icon={<LogIn className="w-5 h-5" />}
+      colorClass="bg-green-500 hover:bg-green-600"
       className={className}
       {...props}
     />
@@ -54,9 +55,9 @@ export const LogoutButton = React.forwardRef<HTMLButtonElement, React.ButtonHTML
   ({ className, ...props }, ref) => (
     <ExpandButton
       ref={ref}
-      label="\u0e2d\u0e2d\u0e01\u0e08\u0e32\u0e01\u0e23\u0e30\u0e1a\u0e1a"
-      icon={<LogOut className="w-4 h-4" />}
-      colorClass="bg-red-500"
+      label="ออกจากระบบ"
+      icon={<LogOut className="w-5 h-5" />}
+      colorClass="bg-red-500 hover:bg-red-600"
       className={className}
       {...props}
     />
