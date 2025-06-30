@@ -327,11 +327,11 @@ export default function ComplaintsPage() {
     sortOrder: "desc"
   });
 
-  const itemsPerPage = 10;
+  const [itemsPerPage, setItemsPerPage] = useState(10);
 
   useEffect(() => {
     fetchComplaints();
-  }, [currentPage, filters]);
+  }, [currentPage, filters, itemsPerPage]);
 
   const fetchComplaints = async () => {
     if (!refreshing) setLoading(true);
@@ -384,6 +384,20 @@ export default function ComplaintsPage() {
     }
   };
 
+  const handleViewComplaint = async (complaint: Complaint) => {
+    // Show basic info first
+    setSelectedComplaint(complaint);
+    try {
+      const res = await fetch(`/api/admin/complaints/${complaint.id}`);
+      if (res.ok) {
+        const full = await res.json();
+        setSelectedComplaint(full);
+      }
+    } catch (error) {
+      console.error('Error fetching complaint details:', error);
+    }
+  };
+
   const handleRefresh = () => {
     setRefreshing(true);
     fetchComplaints();
@@ -391,6 +405,11 @@ export default function ComplaintsPage() {
 
   const handleFilterChange = (key: keyof FilterState, value: string) => {
     setFilters(prev => ({ ...prev, [key]: value }));
+    setCurrentPage(1);
+  };
+
+  const handleItemsPerPageChange = (value: string) => {
+    setItemsPerPage(Number(value));
     setCurrentPage(1);
   };
 
@@ -676,7 +695,7 @@ export default function ComplaintsPage() {
                             <Button
                               size="sm"
                               variant="outline"
-                              onClick={() => setSelectedComplaint(complaint)}
+                              onClick={() => handleViewComplaint(complaint)}
                               className="hover-lift"
                             >
                               <Eye className="w-4 h-4 mr-1" />
@@ -699,9 +718,27 @@ export default function ComplaintsPage() {
               {/* Pagination */}
               {totalPages > 1 && (
                 <div className="flex items-center justify-between mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
-                  <p className="text-sm text-gray-500 dark:text-gray-400">
-                    หน้า {currentPage} จาก {totalPages} • แสดง {complaints.length} จาก {totalCount.toLocaleString()} รายการ
-                  </p>
+                  <div className="flex items-center space-x-4">
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                      หน้า {currentPage} จาก {totalPages} • แสดง {complaints.length} จาก {totalCount.toLocaleString()} รายการ
+                    </p>
+                    <div className="flex items-center space-x-2">
+                      <span className="text-sm text-gray-500 dark:text-gray-400">แสดง:</span>
+                      <Select value={itemsPerPage.toString()} onValueChange={handleItemsPerPageChange}>
+                        <SelectTrigger className="w-20">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="10">10</SelectItem>
+                          <SelectItem value="20">20</SelectItem>
+                          <SelectItem value="30">30</SelectItem>
+                          <SelectItem value="40">40</SelectItem>
+                          <SelectItem value="50">50</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <span className="text-sm text-gray-500 dark:text-gray-400">รายการต่อหน้า</span>
+                    </div>
+                  </div>
                   <div className="flex items-center space-x-2">
                     <Button
                       variant="outline"
@@ -716,20 +753,26 @@ export default function ComplaintsPage() {
                     
                     {/* Page numbers */}
                     <div className="hidden sm:flex items-center space-x-1">
-                      {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                        const pageNumber = Math.max(1, Math.min(totalPages, currentPage - 2 + i));
-                        return (
-                          <Button
-                            key={pageNumber}
-                            variant={currentPage === pageNumber ? "default" : "outline"}
-                            size="sm"
-                            onClick={() => setCurrentPage(pageNumber)}
-                            className="w-8 h-8 p-0"
-                          >
-                            {pageNumber}
-                          </Button>
-                        );
-                      })}
+                      {(() => {
+                        const pages = [];
+                        const startPage = Math.max(1, currentPage - 2);
+                        const endPage = Math.min(totalPages, startPage + 4);
+                        
+                        for (let i = startPage; i <= endPage; i++) {
+                          pages.push(
+                            <Button
+                              key={i}
+                              variant={currentPage === i ? "default" : "outline"}
+                              size="sm"
+                              onClick={() => setCurrentPage(i)}
+                              className="w-8 h-8 p-0"
+                            >
+                              {i}
+                            </Button>
+                          );
+                        }
+                        return pages;
+                      })()}
                     </div>
                     
                     <Button
