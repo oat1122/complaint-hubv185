@@ -88,8 +88,9 @@ export default function StatisticsPage() {
 
   const fetchCategoryAnalytics = async () => {
     try {
+      setLoading(true);
       setRefreshing(true);
-      const response = await fetch('/api/admin/analytics/categories');
+      const response = await fetch(`/api/admin/analytics/categories?timeRange=${timeRange}`);
       if (!response.ok) {
         throw new Error('Failed to fetch category analytics');
       }

@@ -14,6 +14,23 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    const { searchParams } = new URL(request.url);
+    const timeRange = searchParams.get('timeRange') || '6months';
+    const startDate = new Date();
+    switch (timeRange) {
+      case '1month':
+        startDate.setMonth(startDate.getMonth() - 1);
+        break;
+      case '3months':
+        startDate.setMonth(startDate.getMonth() - 3);
+        break;
+      case '1year':
+        startDate.setFullYear(startDate.getFullYear() - 1);
+        break;
+      default:
+        startDate.setMonth(startDate.getMonth() - 6);
+    }
+
     // Get category statistics
     const categoryStats = await prisma.complaint.groupBy({
       by: ['category'],
@@ -25,6 +42,11 @@ export async function GET(request: NextRequest) {
           id: 'desc',
         },
       },
+      where: {
+        createdAt: {
+          gte: startDate,
+        },
+      },
     });
 
     // Get category breakdown by status
@@ -33,12 +55,14 @@ export async function GET(request: NextRequest) {
       _count: {
         id: true,
       },
+      where: {
+        createdAt: {
+          gte: startDate,
+        },
+      },
     });
 
     // Get category trends (last 6 months)
-    const sixMonthsAgo = new Date();
-    sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
-
     const categoryTrends = await prisma.complaint.groupBy({
       by: ['category', 'createdAt'],
       _count: {
@@ -46,7 +70,7 @@ export async function GET(request: NextRequest) {
       },
       where: {
         createdAt: {
-          gte: sixMonthsAgo,
+          gte: startDate,
         },
       },
     });
@@ -55,6 +79,9 @@ export async function GET(request: NextRequest) {
     const resolvedComplaints = await prisma.complaint.findMany({
       where: {
         status: 'RESOLVED',
+        createdAt: {
+          gte: startDate,
+        },
       },
       select: {
         category: true,
