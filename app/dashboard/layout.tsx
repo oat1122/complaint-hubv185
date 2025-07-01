@@ -145,15 +145,15 @@ export default function DashboardLayout({
           </div>
         </header>
 
-        <main className="flex-1 min-h-0 pb-24 lg:pb-0 safe-bottom">
+        <main className="flex-1 min-h-0 safe-bottom">
           <div className="h-full">
             {children}
           </div>
         </main>
       </div>
 
-      <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-gray-50 dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700 safe-bottom z-30">
-        <div className="grid grid-cols-4 py-2">
+      <nav className="lg:hidden">
+        <div className="grid grid-cols-4 py-2 fixed bottom-0 left-0 right-0 bg-gray-50 dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700 safe-bottom z-30">
           <a
             href="/dashboard"
             className="flex flex-col items-center justify-center py-2 text-xs font-medium text-gray-600 dark:text-gray-400 hover:text-primary tap-target"
