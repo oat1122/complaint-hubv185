@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import { calculateDateRange } from '@/lib/analytics-utils';
 
 export async function GET(request: NextRequest) {
   try {
@@ -14,17 +15,8 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const range = request.nextUrl.searchParams.get('range') || '6months';
-    const months =
-      range === '1month'
-        ? 1
-        : range === '3months'
-          ? 3
-          : range === '1year'
-            ? 12
-            : 6;
-    const startDate = new Date();
-    startDate.setMonth(startDate.getMonth() - months);
+    const timeRange = request.nextUrl.searchParams.get('timeRange') || '6months';
+    const dateFilter = calculateDateRange(timeRange);
 
     // Get category statistics
     const categoryStats = await prisma.complaint.groupBy({
@@ -38,9 +30,7 @@ export async function GET(request: NextRequest) {
         },
       },
       where: {
-        createdAt: {
-          gte: startDate,
-        },
+        createdAt: dateFilter,
       },
     });
 
@@ -51,9 +41,7 @@ export async function GET(request: NextRequest) {
         id: true,
       },
       where: {
-        createdAt: {
-          gte: startDate,
-        },
+        createdAt: dateFilter,
       },
     });
 
@@ -64,9 +52,7 @@ export async function GET(request: NextRequest) {
         id: true,
       },
       where: {
-        createdAt: {
-          gte: startDate,
-        },
+        createdAt: dateFilter,
       },
     });
 
@@ -74,9 +60,7 @@ export async function GET(request: NextRequest) {
     const resolvedComplaints = await prisma.complaint.findMany({
       where: {
         status: 'RESOLVED',
-        createdAt: {
-          gte: startDate,
-        },
+        createdAt: dateFilter,
       },
       select: {
         category: true,

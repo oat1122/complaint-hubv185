@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import useSWR from 'swr';
 
 export interface DashboardStats {
   overallStats: {
@@ -22,36 +22,20 @@ export interface DashboardStats {
 }
 
 export function useAnalyticsData(timeRange: string) {
-  const cacheRef = useRef<Record<string, DashboardStats>>({});
-  const [data, setData] = useState<DashboardStats | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const fetcher = (url: string) =>
+    fetch(url).then(async (res) => {
+      if (!res.ok) throw new Error('Failed to fetch category analytics');
+      return res.json();
+    });
 
-  const fetchData = useCallback(async () => {
-    try {
-      setLoading(true);
-      const cached = cacheRef.current[timeRange];
-      if (cached) {
-        setData(cached);
-        return;
-      }
-      const response = await fetch(`/api/admin/analytics/categories?range=${timeRange}`);
-      if (!response.ok) {
-        throw new Error('Failed to fetch category analytics');
-      }
-      const result = (await response.json()) as DashboardStats;
-      setData(result);
-      cacheRef.current[timeRange] = result;
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'เกิดข้อผิดพลาด');
-    } finally {
-      setLoading(false);
+  const { data, isLoading, error, mutate } = useSWR<DashboardStats>(
+    `/api/admin/analytics/categories?timeRange=${timeRange}`,
+    fetcher,
+    {
+      revalidateOnFocus: false,
+      dedupingInterval: 60000,
     }
-  }, [timeRange]);
+  );
 
-  useEffect(() => {
-    fetchData();
-  }, [fetchData]);
-
-  return { data, loading, error, refetch: fetchData };
+  return { data, loading: isLoading, error: error ? error.message : null, refetch: mutate };
 }

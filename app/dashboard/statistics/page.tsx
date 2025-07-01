@@ -1,10 +1,13 @@
 "use client";
 
 import { useState, useMemo, useEffect } from "react";
+import { PerformanceTable } from "@/components/dashboard/PerformanceTable";
+import { RetryButton } from "@/components/RetryButton";
+import { useIsMobile } from "@/components/hooks/useIsMobile";
 import dynamic from "next/dynamic";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { CategorySummary } from "@/components/dashboard/CategoryStats";
-import { useAnalyticsData, DashboardStats } from "@/components/dashboard/useAnalyticsData";
+import { useAnalyticsData } from "@/components/dashboard/useAnalyticsData";
 import { StatCard } from "@/components/dashboard/StatCard";
 import { ChartContainer } from "@/components/dashboard/ChartContainer";
 import { Badge } from "@/components/ui/badge";
@@ -56,6 +59,7 @@ export default function StatisticsPage() {
   const [timeRange, setTimeRange] = useState('6months');
   const [refreshing, setRefreshing] = useState(false);
   const [lastUpdated, setLastUpdated] = useState<string | null>(null);
+  const isMobile = useIsMobile();
 
   const { data: stats, loading, error, refetch } = useAnalyticsData(timeRange);
 
@@ -70,6 +74,25 @@ export default function StatisticsPage() {
     await refetch();
     setRefreshing(false);
     setLastUpdated(new Date().toLocaleDateString('th-TH'));
+  };
+
+  const [exporting, setExporting] = useState(false);
+  const handleExport = async (format: 'pdf' | 'excel') => {
+    try {
+      setExporting(true);
+      const response = await fetch(`/api/admin/analytics/export?format=${format}&timeRange=${timeRange}`);
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `analytics-${timeRange}-${new Date().toISOString().split('T')[0]}.${format}`;
+      a.click();
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setExporting(false);
+    }
   };
 
   const processedData = useMemo(() => {
@@ -147,6 +170,27 @@ export default function StatisticsPage() {
     };
   }, [stats]);
 
+  const [sortBy, setSortBy] = useState('resolutionRate');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+  const sortedCategoryStats = useMemo(() => {
+    if (!stats) return [];
+    return [...stats.categoryStats].sort((a, b) => {
+      const valA = (a as any)[sortBy];
+      const valB = (b as any)[sortBy];
+      if (valA === valB) return 0;
+      return sortOrder === 'asc' ? valA - valB : valB - valA;
+    });
+  }, [stats, sortBy, sortOrder]);
+
+  const handleSortTable = (column: string) => {
+    if (sortBy === column) {
+      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortBy(column);
+      setSortOrder('desc');
+    }
+  };
+
   const priorityChartData = processedData?.priorityChartData ?? [];
   const trendChartData = processedData?.trendChartData ?? [];
   const categoryPerformanceData = processedData?.categoryPerformanceData ?? [];
@@ -187,10 +231,7 @@ export default function StatisticsPage() {
             <AlertTriangle className="w-16 h-16 text-red-500 mb-4" />
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">เกิดข้อผิดพลาด</h3>
             <p className="text-gray-600 dark:text-gray-400 mb-4 text-center">{error}</p>
-            <Button onClick={refetch} className="tap-target">
-              <RefreshCw className="w-4 h-4 mr-2" />
-              ลองใหม่
-            </Button>
+            <RetryButton onRetry={() => refetch()} />
           </CardContent>
         </Card>
       </div>
@@ -249,8 +290,8 @@ export default function StatisticsPage() {
             <span className="hidden sm:inline">รีเฟรช</span>
           </Button>
 
-          <Button variant="outline" size="sm" className="tap-target">
-            <Download className="w-4 h-4 mr-2" />
+          <Button onClick={() => handleExport('excel')} variant="outline" size="sm" className="tap-target" disabled={exporting}>
+            <Download className={`w-4 h-4 mr-2 ${exporting ? 'animate-spin' : ''}`} />
             <span className="hidden sm:inline">ส่งออก</span>
           </Button>
         </div>
@@ -293,7 +334,7 @@ export default function StatisticsPage() {
           description={`จำนวนเรื่องร้องเรียนในช่วง ${timeRange === '6months' ? '6 เดือน' : timeRange === '1year' ? '1 ปี' : timeRange} ที่ผ่านมา`}
           loading={loading}
         >
-          <div className="h-64 sm:h-80">
+          <div style={{ height: isMobile ? 250 : 350 }}>
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={trendChartData}>
                 <defs>
@@ -339,7 +380,7 @@ export default function StatisticsPage() {
           description="สัดส่วนเรื่องร้องเรียนแต่ละระดับความสำคัญ"
           loading={loading}
         >
-          <div className="h-64 sm:h-80">
+          <div style={{ height: isMobile ? 250 : 350 }}>
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
@@ -375,7 +416,7 @@ export default function StatisticsPage() {
         description="เปรียบเทียบจำนวนเรื่องทั้งหมดและจำนวนที่แก้ไขแล้วแต่ละประเภท"
         loading={loading}
       >
-        <div className="h-80 sm:h-96">
+        <div style={{ height: isMobile ? 300 : 400 }}>
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={categoryPerformanceData} margin={{ top: 20, right: 30, left: 20, bottom: 60 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
@@ -416,7 +457,7 @@ export default function StatisticsPage() {
         description="เวลาเฉลี่ยในการแก้ไขปัญหาแต่ละประเภท (ชั่วโมง)"
         loading={loading}
       >
-        <div className="h-64 sm:h-80">
+        <div style={{ height: isMobile ? 250 : 350 }}>
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={resolutionTimeData} layout="horizontal" margin={{ top: 20, right: 30, left: 60, bottom: 5 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
@@ -449,71 +490,7 @@ export default function StatisticsPage() {
           <CardDescription>ข้อมูลรายละเอียดการแก้ไขปัญหาแต่ละประเภท</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-gray-200 dark:border-gray-700">
-                  <th className="text-left p-3 font-medium">ประเภท</th>
-                  <th className="text-right p-3 font-medium">ทั้งหมด</th>
-                  <th className="text-right p-3 font-medium">ใหม่</th>
-                  <th className="text-right p-3 font-medium">กำลังดำเนินการ</th>
-                  <th className="text-right p-3 font-medium">แก้ไขแล้ว</th>
-                  <th className="text-right p-3 font-medium">อัตราการแก้ไข</th>
-                  <th className="text-right p-3 font-medium">เวลาเฉลี่ย (ชม.)</th>
-                  <th className="text-center p-3 font-medium">ประสิทธิภาพ</th>
-                </tr>
-              </thead>
-              <tbody>
-                {stats.categoryStats
-                  .sort((a, b) => b.resolutionRate - a.resolutionRate)
-                  .map((item) => {
-                    const categoryInfo = COMPLAINT_CATEGORIES.find(c => c.value === item.category);
-                    const performanceScore = Math.round((item.resolutionRate + (100 - Math.min(item.avgResolutionTime / 24 * 100, 100))) / 2);
-
-                    return (
-                      <tr key={item.category} className="border-b border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
-                        <td className="p-3">
-                          <div className="flex items-center space-x-2">
-                            {categoryInfo && <categoryInfo.icon className="w-4 h-4" />}
-                            <span className="font-medium">{categoryInfo?.label || item.category}</span>
-                          </div>
-                        </td>
-                        <td className="text-right p-3 font-semibold">{item.totalCount}</td>
-                        <td className="text-right p-3 text-blue-600">{item.newCount}</td>
-                        <td className="text-right p-3 text-yellow-600">{item.inProgressCount}</td>
-                        <td className="text-right p-3 text-green-600">{item.resolvedCount}</td>
-                        <td className="text-right p-3">
-                          <span className={`font-semibold ${
-                            item.resolutionRate > 80 ? 'text-green-600' :
-                            item.resolutionRate > 60 ? 'text-yellow-600' : 'text-red-600'
-                          }`}>
-                            {item.resolutionRate}%
-                          </span>
-                        </td>
-                        <td className="text-right p-3">
-                          <span className={`${
-                            item.avgResolutionTime < 24 ? 'text-green-600' :
-                            item.avgResolutionTime < 72 ? 'text-yellow-600' : 'text-red-600'
-                          }`}>
-                            {Math.round(item.avgResolutionTime)}
-                          </span>
-                        </td>
-                        <td className="text-center p-3">
-                          <div className="flex items-center justify-center">
-                            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white ${
-                              performanceScore > 80 ? 'bg-green-500' :
-                              performanceScore > 60 ? 'bg-yellow-500' : 'bg-red-500'
-                            }`}>
-                              {performanceScore}
-                            </div>
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  })}
-              </tbody>
-            </table>
-          </div>
+          <PerformanceTable data={sortedCategoryStats} onSort={handleSortTable} sortBy={sortBy} sortOrder={sortOrder} />
         </CardContent>
       </Card>
 
