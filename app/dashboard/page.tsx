@@ -244,7 +244,7 @@ export default function DashboardPage() {
 
   if (loading) {
     return (
-      <div className="container-responsive py-6 sm:py-8 space-y-6 sm:space-y-8">
+      <div className="container-responsive py-6 sm:py-8 pb-24 space-y-6 sm:space-y-8">
         {/* Header skeleton */}
         <div className="space-y-4 animate-pulse">
           <div className="h-8 loading-skeleton rounded w-64"></div>
@@ -275,7 +275,7 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="container-responsive py-6 sm:py-8 space-y-6 sm:space-y-8 animate-slide-in">
+    <div className="container-responsive py-6 sm:py-8 pb-24 space-y-6 sm:space-y-8 animate-slide-in">
       {/* Enhanced Header - Mobile Optimized */}
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
         <div className="space-y-2">

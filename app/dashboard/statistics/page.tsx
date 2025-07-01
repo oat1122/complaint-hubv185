@@ -104,7 +104,7 @@ export default function StatisticsPage() {
 
   if (loading) {
     return (
-      <div className="container-responsive py-6 sm:py-8">
+      <div className="container-responsive py-6 sm:py-8 pb-24">
         <div className="space-y-6">
           <div className="space-y-2 animate-pulse">
             <div className="h-8 loading-skeleton rounded w-64"></div>
@@ -127,7 +127,7 @@ export default function StatisticsPage() {
 
   if (error) {
     return (
-      <div className="container-responsive py-6 sm:py-8">
+      <div className="container-responsive py-6 sm:py-8 pb-24">
         <Card className="card-modern">
           <CardContent className="flex flex-col items-center justify-center py-12">
             <AlertTriangle className="w-16 h-16 text-red-500 mb-4" />
@@ -145,7 +145,7 @@ export default function StatisticsPage() {
 
   if (!stats) {
     return (
-      <div className="container-responsive py-6 sm:py-8">
+      <div className="container-responsive py-6 sm:py-8 pb-24">
         <Card className="card-modern">
           <CardContent className="flex items-center justify-center py-12">
             <p className="text-gray-600 dark:text-gray-400">ไม่พบข้อมูล</p>
@@ -221,7 +221,7 @@ export default function StatisticsPage() {
   const COLORS = ['#ab1616', '#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#ef4444', '#06b6d4', '#84cc16'];
 
   return (
-    <div className="container-responsive py-6 sm:py-8 space-y-6 sm:space-y-8 animate-slide-in">
+    <div className="container-responsive py-6 sm:py-8 pb-24 space-y-6 sm:space-y-8 animate-slide-in">
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
         <div className="space-y-2">
           <div className="flex items-center space-x-2">
