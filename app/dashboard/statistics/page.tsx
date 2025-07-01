@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
+import useSWR from "swr";
 import dynamic from "next/dynamic";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { CategorySummary } from "@/components/dashboard/CategoryStats";
@@ -42,7 +43,6 @@ import {
   AlertTriangle,
   Download,
   RefreshCw,
-  Filter,
   Info,
   Award,
   Activity,
@@ -72,44 +72,28 @@ interface DashboardStats {
 }
 
 export default function StatisticsPage() {
-  const [stats, setStats] = useState<DashboardStats | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [timeRange, setTimeRange] = useState('6months');
+  const { data: stats, error, isLoading, mutate } = useSWR<DashboardStats>(
+    `/api/admin/analytics/categories?timeRange=${timeRange}`,
+    async (url: string) => {
+      const res = await fetch(url);
+      if (!res.ok) throw new Error('Failed to fetch category analytics');
+      return res.json();
+    }
+  );
   const [refreshing, setRefreshing] = useState(false);
   const [lastUpdated, setLastUpdated] = useState<string | null>(null);
   const [exporting, setExporting] = useState(false);
 
   useEffect(() => {
-    fetchCategoryAnalytics();
-  }, [timeRange]);
-
-  useEffect(() => {
-    setLastUpdated(new Date().toLocaleDateString('th-TH'));
-  }, []);
-
-
-  const fetchCategoryAnalytics = async () => {
-    try {
-      setLoading(true);
-      setRefreshing(true);
-      const response = await fetch(`/api/admin/analytics/categories?timeRange=${timeRange}`);
-      if (!response.ok) {
-        throw new Error('Failed to fetch category analytics');
-      }
-      const data = await response.json();
-      setStats(data);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'เกิดข้อผิดพลาด');
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
+    if (stats?.timestamp) {
+      setLastUpdated(new Date(stats.timestamp).toLocaleDateString('th-TH'));
     }
-  };
+  }, [stats]);
 
   const handleRefresh = () => {
     setRefreshing(true);
-    fetchCategoryAnalytics();
+    mutate().finally(() => setRefreshing(false));
   };
 
   const handleExport = async (format: 'pdf' | 'excel') => {
@@ -137,25 +121,24 @@ export default function StatisticsPage() {
     }
   };
 
-  if (loading) {
+  if (isLoading) {
     return (
-      <div className="container-responsive py-6 sm:py-8 pb-24">
-        <div className="space-y-6">
-          <div className="space-y-2 animate-pulse">
-            <div className="h-8 loading-skeleton rounded w-64"></div>
-            <div className="h-4 loading-skeleton rounded w-96"></div>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-            {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="loading-skeleton h-24 rounded-xl"></div>
-            ))}
-          </div>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div className="loading-skeleton h-80 rounded-xl"></div>
-            <div className="loading-skeleton h-80 rounded-xl"></div>
-          </div>
-          <div className="loading-skeleton h-96 rounded-xl"></div>
+      <div className="container-responsive py-6 sm:py-8 pb-24 space-y-6">
+        <div className="space-y-2 animate-pulse">
+          <div className="h-8 loading-skeleton rounded w-64"></div>
+          <div className="h-4 loading-skeleton rounded w-96"></div>
         </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+          {[1, 2, 3, 4].map((i) => (
+            <div key={i} className="loading-skeleton h-24 rounded-xl"></div>
+          ))}
+        </div>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="loading-skeleton h-80 rounded-xl"></div>
+          <div className="loading-skeleton h-80 rounded-xl"></div>
+        </div>
+        <div className="loading-skeleton h-64 rounded-xl"></div>
+        <div className="loading-skeleton h-96 rounded-xl"></div>
       </div>
     );
   }
@@ -168,7 +151,7 @@ export default function StatisticsPage() {
             <AlertTriangle className="w-16 h-16 text-red-500 mb-4" />
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">เกิดข้อผิดพลาด</h3>
             <p className="text-gray-600 dark:text-gray-400 mb-4 text-center">{error}</p>
-            <Button onClick={fetchCategoryAnalytics} className="tap-target">
+            <Button onClick={() => mutate()} className="tap-target">
               <RefreshCw className="w-4 h-4 mr-2" />
               ลองใหม่
             </Button>
@@ -190,68 +173,82 @@ export default function StatisticsPage() {
     );
   }
 
-  const priorityData = stats.categoryStats.reduce((acc: Record<string, number>, item) => {
-    acc['HIGH'] = (acc['HIGH'] || 0) + Math.floor(item.totalCount * 0.2);
-    acc['MEDIUM'] = (acc['MEDIUM'] || 0) + Math.floor(item.totalCount * 0.5);
-    acc['LOW'] = (acc['LOW'] || 0) + Math.floor(item.totalCount * 0.3);
-    return acc;
-  }, {});
-
-  const priorityChartData = Object.entries(priorityData).map(([priority, count]) => ({
-    priority,
-    count,
-    label: PRIORITY_LEVELS.find(p => p.value === priority)?.label || priority,
-    color: priority === 'HIGH' ? '#ef4444' : priority === 'MEDIUM' ? '#f59e0b' : '#10b981'
-  }));
-
-  const monthlyTrendData = stats.categoryStats.reduce((acc: Record<string, number>, item) => {
-    Object.entries(item.monthlyTrends).forEach(([month, count]) => {
-      acc[month] = (acc[month] || 0) + count;
-    });
-    return acc;
-  }, {});
-
-  const trendChartData = Object.entries(monthlyTrendData)
-    .sort(([a], [b]) => a.localeCompare(b))
-    .map(([month, count]) => ({
-      month,
+  const priorityChartData = useMemo(() => {
+    if (!stats) return [] as any[];
+    const priorityData = stats.categoryStats.reduce((acc: Record<string, number>, item) => {
+      acc['HIGH'] = (acc['HIGH'] || 0) + Math.floor(item.totalCount * 0.2);
+      acc['MEDIUM'] = (acc['MEDIUM'] || 0) + Math.floor(item.totalCount * 0.5);
+      acc['LOW'] = (acc['LOW'] || 0) + Math.floor(item.totalCount * 0.3);
+      return acc;
+    }, {});
+    return Object.entries(priorityData).map(([priority, count]) => ({
+      priority,
       count,
-      monthLabel: new Date(month + '-01').toLocaleDateString('th-TH', { year: 'numeric', month: 'short' }),
+      label: PRIORITY_LEVELS.find(p => p.value === priority)?.label || priority,
+      color: priority === 'HIGH' ? '#ef4444' : priority === 'MEDIUM' ? '#f59e0b' : '#10b981'
     }));
+  }, [stats]);
 
-  const categoryPerformanceData = stats.categoryStats
-    .map(item => {
-      const categoryInfo = COMPLAINT_CATEGORIES.find(c => c.value === item.category);
-      return {
-        name: categoryInfo?.label || item.category,
-        total: item.totalCount,
-        resolved: item.resolvedCount,
-        resolutionRate: item.resolutionRate,
-        avgTime: item.avgResolutionTime,
-        pending: item.totalCount - item.resolvedCount
-      };
-    })
-    .sort((a, b) => b.total - a.total);
+  const trendChartData = useMemo(() => {
+    if (!stats) return [] as any[];
+    const monthlyTrendData = stats.categoryStats.reduce((acc: Record<string, number>, item) => {
+      Object.entries(item.monthlyTrends).forEach(([month, count]) => {
+        acc[month] = (acc[month] || 0) + count;
+      });
+      return acc;
+    }, {});
+    return Object.entries(monthlyTrendData)
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([month, count]) => ({
+        month,
+        count,
+        monthLabel: new Date(month + '-01').toLocaleDateString('th-TH', { year: 'numeric', month: 'short' }),
+      }));
+  }, [stats]);
 
-  const resolutionTimeData = stats.categoryStats
-    .filter(item => item.avgResolutionTime > 0)
-    .map(item => {
-      const categoryInfo = COMPLAINT_CATEGORIES.find(c => c.value === item.category);
-      return {
-        category: categoryInfo?.label || item.category,
-        time: Math.round(item.avgResolutionTime),
-        count: item.resolvedCount
-      };
-    })
-    .sort((a, b) => a.time - b.time)
-    .slice(0, 8);
+  const categoryPerformanceData = useMemo(() => {
+    if (!stats) return [] as any[];
+    return stats.categoryStats
+      .map(item => {
+        const categoryInfo = COMPLAINT_CATEGORIES.find(c => c.value === item.category);
+        return {
+          name: categoryInfo?.label || item.category,
+          total: item.totalCount,
+          resolved: item.resolvedCount,
+          resolutionRate: item.resolutionRate,
+          avgTime: item.avgResolutionTime,
+          pending: item.totalCount - item.resolvedCount
+        };
+      })
+      .sort((a, b) => b.total - a.total);
+  }, [stats]);
 
-  const totalResolved = stats.categoryStats.reduce((sum, item) => sum + item.resolvedCount, 0);
-  const totalComplaints = stats.overallStats.totalComplaints;
-  const overallResolutionRate = totalComplaints > 0 ? Math.round((totalResolved / totalComplaints) * 100) : 0;
-  const avgResolutionTime = stats.categoryStats.length > 0
-    ? Math.round(stats.categoryStats.reduce((sum, item) => sum + item.avgResolutionTime, 0) / stats.categoryStats.length)
-    : 0;
+  const resolutionTimeData = useMemo(() => {
+    if (!stats) return [] as any[];
+    return stats.categoryStats
+      .filter(item => item.avgResolutionTime > 0)
+      .map(item => {
+        const categoryInfo = COMPLAINT_CATEGORIES.find(c => c.value === item.category);
+        return {
+          category: categoryInfo?.label || item.category,
+          time: Math.round(item.avgResolutionTime),
+          count: item.resolvedCount
+        };
+      })
+      .sort((a, b) => a.time - b.time)
+      .slice(0, 8);
+  }, [stats]);
+
+  const { overallResolutionRate, avgResolutionTime } = useMemo(() => {
+    if (!stats) return { overallResolutionRate: 0, avgResolutionTime: 0 };
+    const totalResolved = stats.categoryStats.reduce((sum, item) => sum + item.resolvedCount, 0);
+    const totalComplaints = stats.overallStats.totalComplaints;
+    const overallResolutionRate = totalComplaints > 0 ? Math.round((totalResolved / totalComplaints) * 100) : 0;
+    const avgResolutionTime = stats.categoryStats.length > 0
+      ? Math.round(stats.categoryStats.reduce((sum, item) => sum + item.avgResolutionTime, 0) / stats.categoryStats.length)
+      : 0;
+    return { overallResolutionRate, avgResolutionTime };
+  }, [stats]);
 
   const COLORS = ['#ab1616', '#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#ef4444', '#06b6d4', '#84cc16'];
 
@@ -396,7 +393,7 @@ export default function StatisticsPage() {
             <CardDescription>จำนวนเรื่องร้องเรียนในช่วง {timeRange === '6months' ? '6 เดือน' : timeRange === '1year' ? '1 ปี' : timeRange} ที่ผ่านมา</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="h-64 sm:h-80">
+            <div className="h-60 sm:h-80">
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={trendChartData}>
                   <defs>
@@ -447,7 +444,7 @@ export default function StatisticsPage() {
             <CardDescription>สัดส่วนเรื่องร้องเรียนแต่ละระดับความสำคัญ</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="h-64 sm:h-80">
+            <div className="h-60 sm:h-80">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
@@ -534,7 +531,7 @@ export default function StatisticsPage() {
           <CardDescription>เวลาเฉลี่ยในการแก้ไขปัญหาแต่ละประเภท (ชั่วโมง)</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="h-64 sm:h-80">
+          <div className="h-60 sm:h-80">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={resolutionTimeData} layout="horizontal" margin={{ top: 20, right: 30, left: 60, bottom: 5 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
