@@ -47,6 +47,7 @@ import {
   Activity,
   Zap
 } from "lucide-react";
+import { toast } from "sonner";
 
 interface DashboardStats {
   overallStats: {
@@ -76,6 +77,7 @@ export default function StatisticsPage() {
   const [timeRange, setTimeRange] = useState('6months');
   const [refreshing, setRefreshing] = useState(false);
   const [lastUpdated, setLastUpdated] = useState<string | null>(null);
+  const [exporting, setExporting] = useState(false);
 
   useEffect(() => {
     fetchCategoryAnalytics();
@@ -106,6 +108,31 @@ export default function StatisticsPage() {
   const handleRefresh = () => {
     setRefreshing(true);
     fetchCategoryAnalytics();
+  };
+
+  const handleExport = async (format: 'pdf' | 'excel') => {
+    try {
+      setExporting(true);
+      const res = await fetch(`/api/admin/analytics/export?format=${format}&timeRange=${timeRange}`);
+      if (!res.ok) {
+        throw new Error('ไม่สามารถส่งออกได้');
+      }
+      const blob = await res.blob();
+      const ext = format === 'pdf' ? 'pdf' : 'xlsx';
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `analytics-${timeRange}.${ext}`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 100);
+      toast.success('ส่งออกสำเร็จ');
+    } catch (err: any) {
+      toast.error(err.message || 'เกิดข้อผิดพลาด');
+    } finally {
+      setExporting(false);
+    }
   };
 
   if (loading) {
@@ -266,8 +293,14 @@ export default function StatisticsPage() {
             <span className="hidden sm:inline">รีเฟรช</span>
           </Button>
 
-          <Button variant="outline" size="sm" className="tap-target">
-            <Download className="w-4 h-4 mr-2" />
+          <Button
+            onClick={() => handleExport('pdf')}
+            disabled={exporting}
+            variant="outline"
+            size="sm"
+            className="tap-target"
+          >
+            <Download className={`w-4 h-4 mr-2 ${exporting ? 'animate-spin' : ''}`} />
             <span className="hidden sm:inline">ส่งออก</span>
           </Button>
         </div>
