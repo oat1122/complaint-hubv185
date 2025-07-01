@@ -78,7 +78,7 @@ export default function ComplaintsPage() {
   const [debouncedSearch, setDebouncedSearch] = useState(filters.search);
 
   useEffect(() => {
-    const handler = setTimeout(() => setDebouncedSearch(filters.search), 500);
+    const handler = setTimeout(() => setDebouncedSearch(filters.search), 300);
     return () => clearTimeout(handler);
   }, [filters.search]);
 
@@ -182,7 +182,9 @@ export default function ComplaintsPage() {
 
   const handleFilterChange = useCallback((key: keyof FilterState, value: string) => {
     setFilters(prev => ({ ...prev, [key]: value }));
-    setCurrentPage(1);
+    if (key !== 'search') {
+      setCurrentPage(1);
+    }
   }, []);
 
   const handleItemsPerPageChange = useCallback((value: string) => {
