@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import dynamic from "next/dynamic";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { CategorySummary } from "@/components/dashboard/CategoryStats";
@@ -108,6 +108,94 @@ export default function StatisticsPage() {
     fetchCategoryAnalytics();
   };
 
+  const monthlyTrendData = useMemo(() => {
+    if (!stats) return {} as Record<string, number>;
+    return stats.categoryStats.reduce((acc: Record<string, number>, item) => {
+      Object.entries(item.monthlyTrends).forEach(([month, count]) => {
+        acc[month] = (acc[month] || 0) + count;
+      });
+      return acc;
+    }, {} as Record<string, number>);
+  }, [stats]);
+
+  const categoryPerformanceData = useMemo(() => {
+    if (!stats) return [] as Array<{
+      name: string;
+      total: number;
+      resolved: number;
+      resolutionRate: number;
+      avgTime: number;
+      pending: number;
+    }>;
+    return stats.categoryStats
+      .map(item => {
+        const categoryInfo = COMPLAINT_CATEGORIES.find(c => c.value === item.category);
+        return {
+          name: categoryInfo?.label || item.category,
+          total: item.totalCount,
+          resolved: item.resolvedCount,
+          resolutionRate: item.resolutionRate,
+          avgTime: item.avgResolutionTime,
+          pending: item.totalCount - item.resolvedCount
+        };
+      })
+      .sort((a, b) => b.total - a.total);
+  }, [stats]);
+
+  const resolutionTimeData = useMemo(() => {
+    if (!stats) return [] as Array<{ category: string; time: number; count: number }>;
+    return stats.categoryStats
+      .filter(item => item.avgResolutionTime > 0)
+      .map(item => {
+        const categoryInfo = COMPLAINT_CATEGORIES.find(c => c.value === item.category);
+        return {
+          category: categoryInfo?.label || item.category,
+          time: Math.round(item.avgResolutionTime),
+          count: item.resolvedCount
+        };
+      })
+      .sort((a, b) => a.time - b.time)
+      .slice(0, 8);
+  }, [stats]);
+
+  const {
+    totalResolved,
+    totalComplaints,
+    overallResolutionRate,
+    avgResolutionTime
+  } = useMemo(() => {
+    if (!stats) {
+      return {
+        totalResolved: 0,
+        totalComplaints: 0,
+        overallResolutionRate: 0,
+        avgResolutionTime: 0
+      };
+    }
+    const totalResolved = stats.categoryStats.reduce(
+      (sum, item) => sum + item.resolvedCount,
+      0
+    );
+    const totalComplaints = stats.overallStats.totalComplaints;
+    const overallResolutionRate = totalComplaints > 0
+      ? Math.round((totalResolved / totalComplaints) * 100)
+      : 0;
+    const avgResolutionTime = stats.categoryStats.length > 0
+      ? Math.round(
+          stats.categoryStats.reduce(
+            (sum, item) => sum + item.avgResolutionTime,
+            0
+          ) / stats.categoryStats.length
+        )
+      : 0;
+    return {
+      totalResolved,
+      totalComplaints,
+      overallResolutionRate,
+      avgResolutionTime
+    };
+  }, [stats]);
+
   if (loading) {
     return (
       <div className="container-responsive py-6 sm:py-8 pb-24">
@@ -175,13 +263,6 @@ export default function StatisticsPage() {
     color: priority === 'HIGH' ? '#ef4444' : priority === 'MEDIUM' ? '#f59e0b' : '#10b981'
   }));
 
-  const monthlyTrendData = stats.categoryStats.reduce((acc: Record<string, number>, item) => {
-    Object.entries(item.monthlyTrends).forEach(([month, count]) => {
-      acc[month] = (acc[month] || 0) + count;
-    });
-    return acc;
-  }, {});
-
   const trendChartData = Object.entries(monthlyTrendData)
     .sort(([a], [b]) => a.localeCompare(b))
     .map(([month, count]) => ({
@@ -189,40 +270,6 @@ export default function StatisticsPage() {
       count,
       monthLabel: new Date(month + '-01').toLocaleDateString('th-TH', { year: 'numeric', month: 'short' }),
     }));
-
-  const categoryPerformanceData = stats.categoryStats
-    .map(item => {
-      const categoryInfo = COMPLAINT_CATEGORIES.find(c => c.value === item.category);
-      return {
-        name: categoryInfo?.label || item.category,
-        total: item.totalCount,
-        resolved: item.resolvedCount,
-        resolutionRate: item.resolutionRate,
-        avgTime: item.avgResolutionTime,
-        pending: item.totalCount - item.resolvedCount
-      };
-    })
-    .sort((a, b) => b.total - a.total);
-
-  const resolutionTimeData = stats.categoryStats
-    .filter(item => item.avgResolutionTime > 0)
-    .map(item => {
-      const categoryInfo = COMPLAINT_CATEGORIES.find(c => c.value === item.category);
-      return {
-        category: categoryInfo?.label || item.category,
-        time: Math.round(item.avgResolutionTime),
-        count: item.resolvedCount
-      };
-    })
-    .sort((a, b) => a.time - b.time)
-    .slice(0, 8);
-
-  const totalResolved = stats.categoryStats.reduce((sum, item) => sum + item.resolvedCount, 0);
-  const totalComplaints = stats.overallStats.totalComplaints;
-  const overallResolutionRate = totalComplaints > 0 ? Math.round((totalResolved / totalComplaints) * 100) : 0;
-  const avgResolutionTime = stats.categoryStats.length > 0
-    ? Math.round(stats.categoryStats.reduce((sum, item) => sum + item.avgResolutionTime, 0) / stats.categoryStats.length)
-    : 0;
 
   const COLORS = ['#ab1616', '#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#ef4444', '#06b6d4', '#84cc16'];
 
