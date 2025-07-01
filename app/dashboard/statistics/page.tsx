@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import dynamic from "next/dynamic";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { CategorySummary } from "@/components/dashboard/CategoryStats";
@@ -76,8 +76,10 @@ export default function StatisticsPage() {
   const [timeRange, setTimeRange] = useState('6months');
   const [refreshing, setRefreshing] = useState(false);
   const [lastUpdated, setLastUpdated] = useState<string | null>(null);
+  const statsCache = useRef<Record<string, DashboardStats>>({});
 
   useEffect(() => {
+    setLoading(true);
     fetchCategoryAnalytics();
   }, [timeRange]);
 
@@ -87,14 +89,22 @@ export default function StatisticsPage() {
 
 
   const fetchCategoryAnalytics = async () => {
+    const cached = statsCache.current[timeRange];
+    if (cached) {
+      setStats(cached);
+      setLoading(false);
+      setRefreshing(false);
+      return;
+    }
     try {
       setRefreshing(true);
-      const response = await fetch('/api/admin/analytics/categories');
+      const response = await fetch(`/api/admin/analytics/categories?range=${timeRange}`);
       if (!response.ok) {
         throw new Error('Failed to fetch category analytics');
       }
       const data = await response.json();
       setStats(data);
+      statsCache.current[timeRange] = data;
     } catch (err) {
       setError(err instanceof Error ? err.message : 'เกิดข้อผิดพลาด');
     } finally {
@@ -105,8 +115,89 @@ export default function StatisticsPage() {
 
   const handleRefresh = () => {
     setRefreshing(true);
+    setLoading(true);
     fetchCategoryAnalytics();
   };
+
+  const priorityData = useMemo(() => {
+    if (!stats) return {};
+    return stats.categoryStats.reduce((acc: Record<string, number>, item) => {
+      acc['HIGH'] = (acc['HIGH'] || 0) + Math.floor(item.totalCount * 0.2);
+      acc['MEDIUM'] = (acc['MEDIUM'] || 0) + Math.floor(item.totalCount * 0.5);
+      acc['LOW'] = (acc['LOW'] || 0) + Math.floor(item.totalCount * 0.3);
+      return acc;
+    }, {});
+  }, [stats]);
+
+  const priorityChartData = useMemo(() =>
+    Object.entries(priorityData).map(([priority, count]) => ({
+      priority,
+      count,
+      label: PRIORITY_LEVELS.find(p => p.value === priority)?.label || priority,
+      color: priority === 'HIGH' ? '#ef4444' : priority === 'MEDIUM' ? '#f59e0b' : '#10b981'
+    })), [priorityData]);
+
+  const monthlyTrendData = useMemo(() => {
+    if (!stats) return {};
+    return stats.categoryStats.reduce((acc: Record<string, number>, item) => {
+      Object.entries(item.monthlyTrends).forEach(([month, count]) => {
+        acc[month] = (acc[month] || 0) + count;
+      });
+      return acc;
+    }, {});
+  }, [stats]);
+
+  const trendChartData = useMemo(() =>
+    Object.entries(monthlyTrendData)
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([month, count]) => ({
+        month,
+        count,
+        monthLabel: new Date(month + '-01').toLocaleDateString('th-TH', { year: 'numeric', month: 'short' }),
+      })), [monthlyTrendData]);
+
+  const categoryPerformanceData = useMemo(() =>
+    !stats ? [] :
+    stats.categoryStats
+      .map(item => {
+        const categoryInfo = COMPLAINT_CATEGORIES.find(c => c.value === item.category);
+        return {
+          name: categoryInfo?.label || item.category,
+          total: item.totalCount,
+          resolved: item.resolvedCount,
+          resolutionRate: item.resolutionRate,
+          avgTime: item.avgResolutionTime,
+          pending: item.totalCount - item.resolvedCount
+        };
+      })
+      .sort((a, b) => b.total - a.total), [stats]);
+
+  const resolutionTimeData = useMemo(() =>
+    !stats ? [] :
+    stats.categoryStats
+      .filter(item => item.avgResolutionTime > 0)
+      .map(item => {
+        const categoryInfo = COMPLAINT_CATEGORIES.find(c => c.value === item.category);
+        return {
+          category: categoryInfo?.label || item.category,
+          time: Math.round(item.avgResolutionTime),
+          count: item.resolvedCount
+        };
+      })
+      .sort((a, b) => a.time - b.time)
+      .slice(0, 8), [stats]);
+
+  const totalResolved = useMemo(() =>
+    stats ? stats.categoryStats.reduce((sum, item) => sum + item.resolvedCount, 0) : 0, [stats]);
+  const totalComplaints = stats.overallStats.totalComplaints;
+  const overallResolutionRate = useMemo(() =>
+    totalComplaints > 0 ? Math.round((totalResolved / totalComplaints) * 100) : 0, [totalResolved, totalComplaints]);
+  const avgResolutionTime = useMemo(() =>
+    stats && stats.categoryStats.length > 0
+      ? Math.round(stats.categoryStats.reduce((sum, item) => sum + item.avgResolutionTime, 0) / stats.categoryStats.length)
+      : 0, [stats]);
+
+  const COLORS = ['#ab1616', '#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#ef4444', '#06b6d4', '#84cc16'];
 
   if (loading) {
     return (
@@ -160,71 +251,6 @@ export default function StatisticsPage() {
       </div>
     );
   }
-
-  const priorityData = stats.categoryStats.reduce((acc: Record<string, number>, item) => {
-    acc['HIGH'] = (acc['HIGH'] || 0) + Math.floor(item.totalCount * 0.2);
-    acc['MEDIUM'] = (acc['MEDIUM'] || 0) + Math.floor(item.totalCount * 0.5);
-    acc['LOW'] = (acc['LOW'] || 0) + Math.floor(item.totalCount * 0.3);
-    return acc;
-  }, {});
-
-  const priorityChartData = Object.entries(priorityData).map(([priority, count]) => ({
-    priority,
-    count,
-    label: PRIORITY_LEVELS.find(p => p.value === priority)?.label || priority,
-    color: priority === 'HIGH' ? '#ef4444' : priority === 'MEDIUM' ? '#f59e0b' : '#10b981'
-  }));
-
-  const monthlyTrendData = stats.categoryStats.reduce((acc: Record<string, number>, item) => {
-    Object.entries(item.monthlyTrends).forEach(([month, count]) => {
-      acc[month] = (acc[month] || 0) + count;
-    });
-    return acc;
-  }, {});
-
-  const trendChartData = Object.entries(monthlyTrendData)
-    .sort(([a], [b]) => a.localeCompare(b))
-    .map(([month, count]) => ({
-      month,
-      count,
-      monthLabel: new Date(month + '-01').toLocaleDateString('th-TH', { year: 'numeric', month: 'short' }),
-    }));
-
-  const categoryPerformanceData = stats.categoryStats
-    .map(item => {
-      const categoryInfo = COMPLAINT_CATEGORIES.find(c => c.value === item.category);
-      return {
-        name: categoryInfo?.label || item.category,
-        total: item.totalCount,
-        resolved: item.resolvedCount,
-        resolutionRate: item.resolutionRate,
-        avgTime: item.avgResolutionTime,
-        pending: item.totalCount - item.resolvedCount
-      };
-    })
-    .sort((a, b) => b.total - a.total);
-
-  const resolutionTimeData = stats.categoryStats
-    .filter(item => item.avgResolutionTime > 0)
-    .map(item => {
-      const categoryInfo = COMPLAINT_CATEGORIES.find(c => c.value === item.category);
-      return {
-        category: categoryInfo?.label || item.category,
-        time: Math.round(item.avgResolutionTime),
-        count: item.resolvedCount
-      };
-    })
-    .sort((a, b) => a.time - b.time)
-    .slice(0, 8);
-
-  const totalResolved = stats.categoryStats.reduce((sum, item) => sum + item.resolvedCount, 0);
-  const totalComplaints = stats.overallStats.totalComplaints;
-  const overallResolutionRate = totalComplaints > 0 ? Math.round((totalResolved / totalComplaints) * 100) : 0;
-  const avgResolutionTime = stats.categoryStats.length > 0
-    ? Math.round(stats.categoryStats.reduce((sum, item) => sum + item.avgResolutionTime, 0) / stats.categoryStats.length)
-    : 0;
-
-  const COLORS = ['#ab1616', '#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#ef4444', '#06b6d4', '#84cc16'];
 
 
   return (
