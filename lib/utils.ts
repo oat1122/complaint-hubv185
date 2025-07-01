@@ -46,3 +46,8 @@ export function getStatusLabel(status: string): string {
   const statusData = STATUS_LEVELS.find(s => s.value === status);
   return statusData?.label || status;
 }
+
+// Normalize search queries for consistent filtering
+export function normalizeSearchQuery(query: string): string {
+  return query.normalize('NFC').trim().replace(/\s+/g, ' ');
+}

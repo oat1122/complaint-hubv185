@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { z } from 'zod';
+import { normalizeSearchQuery } from '@/lib/utils';
 
 // Query parameter validation schema
 const QuerySchema = z.object({
@@ -44,6 +45,8 @@ export async function GET(request: NextRequest) {
       sortOrder
     } = QuerySchema.parse(queryParams);
 
+    const normalizedSearch = search ? normalizeSearchQuery(search) : undefined;
+
     const pageNumber = parseInt(page);
     const limitNumber = parseInt(limit);
     const skip = (pageNumber - 1) * limitNumber;
@@ -55,11 +58,11 @@ export async function GET(request: NextRequest) {
     if (category) where.category = category;
     if (priority) where.priority = priority;
     
-    if (search) {
+    if (normalizedSearch) {
       where.OR = [
-        { title: { contains: search, mode: 'insensitive' } },
-        { description: { contains: search, mode: 'insensitive' } },
-        { trackingId: { contains: search, mode: 'insensitive' } },
+        { title: { contains: normalizedSearch, mode: 'insensitive' } },
+        { description: { contains: normalizedSearch, mode: 'insensitive' } },
+        { trackingId: { contains: normalizedSearch, mode: 'insensitive' } },
       ];
     }
 
@@ -104,7 +107,7 @@ export async function GET(request: NextRequest) {
         status,
         category,
         priority,
-        search,
+        search: normalizedSearch,
       },
     });
 

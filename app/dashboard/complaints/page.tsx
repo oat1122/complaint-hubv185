@@ -44,7 +44,7 @@ import {
   Settings,
   ChevronDown
 } from "lucide-react";
-import { formatDate, getPriorityColor, getStatusColor, getPriorityLabel, getStatusLabel } from "@/lib/utils";
+import { formatDate, getPriorityColor, getStatusColor, getPriorityLabel, getStatusLabel, normalizeSearchQuery } from "@/lib/utils";
 import { STATUS_LEVELS, PRIORITY_LEVELS, COMPLAINT_CATEGORIES } from "@/lib/constants";
 
 const ComplaintDetailModal = dynamic(() =>
@@ -101,6 +101,8 @@ export default function ComplaintsPage() {
   const fetchComplaints = useCallback(async () => {
     if (!refreshing) setLoading(true);
     try {
+      const searchTerm = normalizeSearchQuery(filters.search);
+
       const params = new URLSearchParams({
         page: currentPage.toString(),
         limit: itemsPerPage.toString(),
@@ -109,7 +111,7 @@ export default function ComplaintsPage() {
         ...(filters.status !== "all" && { status: filters.status }),
         ...(filters.category !== "all" && { category: filters.category }),
         ...(filters.priority !== "all" && { priority: filters.priority }),
-        ...(filters.search && { search: filters.search }),
+        ...(searchTerm && { search: searchTerm }),
       });
 
       const response = await fetch(`/api/admin/complaints?${params}`);
