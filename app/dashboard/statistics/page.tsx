@@ -75,10 +75,16 @@ export default function StatisticsPage() {
   const [error, setError] = useState<string | null>(null);
   const [timeRange, setTimeRange] = useState('6months');
   const [refreshing, setRefreshing] = useState(false);
+  const [lastUpdated, setLastUpdated] = useState<string | null>(null);
 
   useEffect(() => {
     fetchCategoryAnalytics();
   }, [timeRange]);
+
+  useEffect(() => {
+    setLastUpdated(new Date().toLocaleDateString('th-TH'));
+  }, []);
+
 
   const fetchCategoryAnalytics = async () => {
     try {
@@ -220,6 +226,7 @@ export default function StatisticsPage() {
 
   const COLORS = ['#ab1616', '#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#ef4444', '#06b6d4', '#84cc16'];
 
+
   return (
     <div className="container-responsive py-6 sm:py-8 pb-24 space-y-6 sm:space-y-8 animate-slide-in">
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
@@ -231,7 +238,7 @@ export default function StatisticsPage() {
             </h1>
           </div>
           <p className="body-responsive text-gray-600 dark:text-gray-400">
-            ข้อมูลเชิงลึกและการวิเคราะห์ประสิทธิภาพ • อัพเดทล่าสุด: {new Date().toLocaleDateString('th-TH')}
+            ข้อมูลเชิงลึกและการวิเคราะห์ประสิทธิภาพ • อัพเดทล่าสุด: {lastUpdated ?? '–'}
           </p>
         </div>
 

@@ -78,17 +78,20 @@ export default function DashboardPage() {
     monthlyTrends: {},
   });
   const [loading, setLoading] = useState(true);
-  const [currentTime, setCurrentTime] = useState(new Date());
+  const [currentTime, setCurrentTime] = useState<Date | null>(null);
   const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
     fetchStats();
-    
+
+    const now = new Date();
+    setCurrentTime(now);
+
     // Update time every minute
     const interval = setInterval(() => {
       setCurrentTime(new Date());
     }, 60000);
-    
+
     return () => clearInterval(interval);
   }, []);
 
@@ -283,7 +286,7 @@ export default function DashboardPage() {
             ภาพรวมระบบ
           </h1>
           <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-4 body-responsive text-gray-600 dark:text-gray-300">
-            <span>อัพเดทล่าสุด: {currentTime.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' })}</span>
+            <span>อัพเดทล่าสุด: {currentTime ? currentTime.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' }) : '–'}</span>
             <div className="flex items-center space-x-2">
               <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
               <span className="text-sm">ระบบทำงานปกติ</span>
