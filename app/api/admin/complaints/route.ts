@@ -15,7 +15,17 @@ const QuerySchema = z.object({
   ]).optional(),
   priority: z.enum(['LOW', 'MEDIUM', 'HIGH', 'URGENT']).optional(),
   search: z.string().optional(),
-  sortBy: z.enum(['createdAt', 'updatedAt', 'priority', 'status']).optional().default('createdAt'),
+  sortBy: z
+    .enum([
+      'createdAt',
+      'updatedAt',
+      'priority',
+      'status',
+      'trackingId',
+      'title',
+    ])
+    .optional()
+    .default('createdAt'),
   sortOrder: z.enum(['asc', 'desc']).optional().default('desc'),
 });
 
