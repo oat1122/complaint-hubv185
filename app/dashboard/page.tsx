@@ -42,6 +42,7 @@ import {
   BarChart,
   Bar,
 } from "@/components/dashboard/Recharts";
+import { getCategoryDisplayName, getPriorityDisplayName } from "@/lib/utils";
 
 interface DashboardStats {
   totalComplaints: number;
@@ -218,32 +219,6 @@ export default function DashboardPage() {
 
   // Chart colors
   const COLORS = ['#ab1616', '#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#ef4444', '#06b6d4'];
-
-  function getCategoryDisplayName(category: string) {
-    const categoryMap: Record<string, string> = {
-      'TECHNICAL': 'เทคนิค',
-      'PERSONNEL': 'บุคคล',
-      'ENVIRONMENT': 'สภาพแวดล้อม',
-      'EQUIPMENT': 'อุปกรณ์',
-      'SAFETY': 'ความปลอดภัย',
-      'FINANCIAL': 'การเงิน',
-      'STRUCTURE_SYSTEM': 'โครงสร้าง',
-      'WELFARE_SERVICES': 'สวัสดิการ',
-      'PROJECT_IDEA': 'ไอเดีย',
-      'OTHER': 'อื่นๆ'
-    };
-    return categoryMap[category] || category;
-  }
-
-  function getPriorityDisplayName(priority: string) {
-    const priorityMap: Record<string, string> = {
-      'LOW': 'ต่ำ',
-      'MEDIUM': 'ปานกลาง',
-      'HIGH': 'สูง',
-      'URGENT': 'เร่งด่วน'
-    };
-    return priorityMap[priority] || priority;
-  }
 
   if (loading) {
     return (
