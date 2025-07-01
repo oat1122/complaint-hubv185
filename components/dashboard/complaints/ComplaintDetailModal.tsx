@@ -61,7 +61,7 @@ export function ComplaintDetailModal({
           <div className="relative w-full max-w-4xl max-h-[90vh]">
             <button
               onClick={() => setPreviewAttachment(null)}
-              className="absolute top-2 right-2 bg-black/60 text-white rounded-full p-2 hover:bg-black/80 tap-target z-10"
+              className="absolute top-2 right-2 flex items-center justify-center bg-black/60 text-white rounded-full p-2 hover:bg-black/80 tap-target z-10"
             >
               <X className="w-5 h-5" />
             </button>
@@ -74,7 +74,7 @@ export function ComplaintDetailModal({
             ) : (
               <iframe
                 src={previewAttachment.url}
-                className="w-full h-[80vh] rounded-lg bg-white"
+                className="w-full h-[80vh] rounded-lg bg-gray-50 dark:bg-gray-900"
               />
             )}
           </div>
