@@ -73,6 +73,8 @@ export default function ComplaintsPage() {
     sortOrder: "desc"
   });
 
+  const [searchInput, setSearchInput] = useState("");
+
   const [itemsPerPage, setItemsPerPage] = useState(10);
 
   useEffect(() => {
@@ -176,6 +178,11 @@ export default function ComplaintsPage() {
     setCurrentPage(1);
   }, []);
 
+  const handleSearch = useCallback(() => {
+    setFilters(prev => ({ ...prev, search: searchInput }));
+    setCurrentPage(1);
+  }, [searchInput]);
+
   const handleItemsPerPageChange = useCallback((value: string) => {
     setItemsPerPage(Number(value));
     setCurrentPage(1);
@@ -198,6 +205,7 @@ export default function ComplaintsPage() {
       sortBy: "createdAt",
       sortOrder: "desc"
     });
+    setSearchInput("");
     setCurrentPage(1);
   }, []);
 
@@ -288,14 +296,26 @@ export default function ComplaintsPage() {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            <div className="relative">
-              <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-              <Input
-                placeholder="ค้นหาเรื่องร้องเรียน..."
-                value={filters.search}
-                onChange={(e) => handleFilterChange('search', e.target.value)}
-                className="pl-10 input-modern"
-              />
+            <div className="flex items-center space-x-2">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                <Input
+                  placeholder="ค้นหาเรื่องร้องเรียน..."
+                  value={searchInput}
+                  onChange={(e) => setSearchInput(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                  className="pl-10 input-modern"
+                />
+              </div>
+              <Button
+                onClick={handleSearch}
+                variant="outline"
+                size="sm"
+                className="tap-target"
+              >
+                <Search className="w-4 h-4 mr-2" />
+                ค้นหา
+              </Button>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
