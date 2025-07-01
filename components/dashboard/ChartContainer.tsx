@@ -3,8 +3,8 @@ import { ChartSkeleton } from './ChartSkeleton';
 import { ReactNode } from 'react';
 
 interface ChartContainerProps {
-  title: string;
-  description?: string;
+  title: ReactNode;
+  description?: ReactNode;
   loading?: boolean;
   children: ReactNode;
 }

@@ -1,4 +1,6 @@
-import useSWR from 'swr';
+"use client";
+
+import useSWR from "swr";
 
 export interface DashboardStats {
   overallStats: {
