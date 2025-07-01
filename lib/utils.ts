@@ -46,3 +46,29 @@ export function getStatusLabel(status: string): string {
   const statusData = STATUS_LEVELS.find(s => s.value === status);
   return statusData?.label || status;
 }
+
+export function getCategoryDisplayName(category: string): string {
+  const categoryMap: Record<string, string> = {
+    TECHNICAL: 'เทคนิค',
+    PERSONNEL: 'บุคคล',
+    ENVIRONMENT: 'สภาพแวดล้อม',
+    EQUIPMENT: 'อุปกรณ์',
+    SAFETY: 'ความปลอดภัย',
+    FINANCIAL: 'การเงิน',
+    STRUCTURE_SYSTEM: 'โครงสร้าง',
+    WELFARE_SERVICES: 'สวัสดิการ',
+    PROJECT_IDEA: 'ไอเดีย',
+    OTHER: 'อื่นๆ'
+  };
+  return categoryMap[category] || category;
+}
+
+export function getPriorityDisplayName(priority: string): string {
+  const priorityMap: Record<string, string> = {
+    LOW: 'ต่ำ',
+    MEDIUM: 'ปานกลาง',
+    HIGH: 'สูง',
+    URGENT: 'เร่งด่วน'
+  };
+  return priorityMap[priority] || priority;
+}
