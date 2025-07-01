@@ -60,9 +60,9 @@ export async function GET(request: NextRequest) {
     
     if (normalizedSearch) {
       where.OR = [
-        { title: { contains: normalizedSearch, mode: 'insensitive' } },
-        { description: { contains: normalizedSearch, mode: 'insensitive' } },
-        { trackingId: { contains: normalizedSearch, mode: 'insensitive' } },
+        { title: { contains: normalizedSearch } },
+        { description: { contains: normalizedSearch } },
+        { trackingId: { contains: normalizedSearch } },
       ];
     }
 
