@@ -214,7 +214,7 @@ export default function ComplaintsPage() {
 
   if (loading && !refreshing) {
     return (
-      <div className="container-responsive py-6 sm:py-8">
+      <div className="container-responsive py-6 sm:py-8 pb-24">
         <div className="space-y-6">
           <div className="space-y-2 animate-pulse">
             <div className="h-8 loading-skeleton rounded w-64"></div>
@@ -228,7 +228,7 @@ export default function ComplaintsPage() {
   }
 
   return (
-    <div className="container-responsive py-6 sm:py-8 space-y-6 sm:space-y-8">
+    <div className="container-responsive py-6 sm:py-8 pb-24 space-y-6 sm:space-y-8">
       <div className="space-y-4 animate-slide-in">
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
           <div>

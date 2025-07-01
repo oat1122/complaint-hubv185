@@ -78,17 +78,20 @@ export default function DashboardPage() {
     monthlyTrends: {},
   });
   const [loading, setLoading] = useState(true);
-  const [currentTime, setCurrentTime] = useState(new Date());
+  const [currentTime, setCurrentTime] = useState<Date | null>(null);
   const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
     fetchStats();
-    
+
+    const now = new Date();
+    setCurrentTime(now);
+
     // Update time every minute
     const interval = setInterval(() => {
       setCurrentTime(new Date());
     }, 60000);
-    
+
     return () => clearInterval(interval);
   }, []);
 
@@ -244,7 +247,7 @@ export default function DashboardPage() {
 
   if (loading) {
     return (
-      <div className="container-responsive py-6 sm:py-8 space-y-6 sm:space-y-8">
+      <div className="container-responsive py-6 sm:py-8 pb-24 space-y-6 sm:space-y-8">
         {/* Header skeleton */}
         <div className="space-y-4 animate-pulse">
           <div className="h-8 loading-skeleton rounded w-64"></div>
@@ -275,7 +278,7 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="container-responsive py-6 sm:py-8 space-y-6 sm:space-y-8 animate-slide-in">
+    <div className="container-responsive py-6 sm:py-8 pb-24 space-y-6 sm:space-y-8 animate-slide-in">
       {/* Enhanced Header - Mobile Optimized */}
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
         <div className="space-y-2">
@@ -283,7 +286,7 @@ export default function DashboardPage() {
             ภาพรวมระบบ
           </h1>
           <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-4 body-responsive text-gray-600 dark:text-gray-300">
-            <span>อัพเดทล่าสุด: {currentTime.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' })}</span>
+            <span>อัพเดทล่าสุด: {currentTime ? currentTime.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' }) : '–'}</span>
             <div className="flex items-center space-x-2">
               <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
               <span className="text-sm">ระบบทำงานปกติ</span>
