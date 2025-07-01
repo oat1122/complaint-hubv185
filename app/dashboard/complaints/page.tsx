@@ -73,6 +73,12 @@ export default function ComplaintsPage() {
     sortOrder: "desc"
   });
 
+  const [searchInput, setSearchInput] = useState("");
+
+  useEffect(() => {
+    setSearchInput(filters.search);
+  }, [filters.search]);
+
   const [itemsPerPage, setItemsPerPage] = useState(10);
 
   useEffect(() => {
@@ -171,6 +177,10 @@ export default function ComplaintsPage() {
     fetchComplaints();
   }, [fetchComplaints]);
 
+  const handleSearchSubmit = useCallback(() => {
+    handleFilterChange('search', searchInput);
+  }, [searchInput, handleFilterChange]);
+
   const handleFilterChange = useCallback((key: keyof FilterState, value: string) => {
     setFilters(prev => ({ ...prev, [key]: value }));
     setCurrentPage(1);
@@ -198,6 +208,7 @@ export default function ComplaintsPage() {
       sortBy: "createdAt",
       sortOrder: "desc"
     });
+    setSearchInput("");
     setCurrentPage(1);
   }, []);
 
@@ -292,10 +303,19 @@ export default function ComplaintsPage() {
               <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
               <Input
                 placeholder="ค้นหาเรื่องร้องเรียน..."
-                value={filters.search}
-                onChange={(e) => handleFilterChange('search', e.target.value)}
-                className="pl-10 input-modern"
+                value={searchInput}
+                onChange={(e) => setSearchInput(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleSearchSubmit()}
+                className="pl-10 pr-20 input-modern"
               />
+              <Button
+                type="button"
+                onClick={handleSearchSubmit}
+                className="absolute top-1/2 right-2 -translate-y-1/2 px-3 py-1 text-sm"
+                size="sm"
+              >
+                ค้นหา
+              </Button>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
