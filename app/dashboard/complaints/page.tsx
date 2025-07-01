@@ -177,14 +177,14 @@ export default function ComplaintsPage() {
     fetchComplaints();
   }, [fetchComplaints]);
 
-  const handleSearchSubmit = useCallback(() => {
-    handleFilterChange('search', searchInput);
-  }, [searchInput, handleFilterChange]);
-
   const handleFilterChange = useCallback((key: keyof FilterState, value: string) => {
     setFilters(prev => ({ ...prev, [key]: value }));
     setCurrentPage(1);
   }, []);
+
+  const handleSearchSubmit = useCallback(() => {
+    handleFilterChange('search', searchInput);
+  }, [searchInput, handleFilterChange]);
 
   const handleItemsPerPageChange = useCallback((value: string) => {
     setItemsPerPage(Number(value));
