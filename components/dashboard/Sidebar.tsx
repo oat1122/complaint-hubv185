@@ -1,8 +1,8 @@
 "use client";
 
 import { useSession, signOut } from "next-auth/react";
+import type { Session } from "next-auth";
 import { usePathname } from "next/navigation";
-import { useState, useEffect } from "react";
 import {
   Home,
   MessageSquare,
@@ -11,7 +11,6 @@ import {
   MessageCircle,
   Menu,
   X,
-  User,
   LogOut,
   ChevronRight,
   Activity,
@@ -115,7 +114,7 @@ function MobileSidebarContent({
   onNavClick,
   onClose
 }: {
-  session: any;
+  session: Session | null;
   pathname: string;
   onSignOut: () => void;
   onNavClick: () => void;
@@ -249,7 +248,7 @@ function DesktopSidebarContent({
   pathname,
   onSignOut
 }: {
-  session: any;
+  session: Session | null;
   pathname: string;
   onSignOut: () => void;
 }) {

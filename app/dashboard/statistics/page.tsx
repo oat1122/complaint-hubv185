@@ -1,12 +1,18 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import dynamic from "next/dynamic";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { CategoryStats, CategorySummary } from "@/components/dashboard/CategoryStats";
+import { CategorySummary } from "@/components/dashboard/CategoryStats";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { COMPLAINT_CATEGORIES, PRIORITY_LEVELS } from "@/lib/constants";
+
+const CategoryStats = dynamic(() =>
+  import("@/components/dashboard/CategoryStats").then((mod) => mod.CategoryStats),
+  { ssr: false, loading: () => <div className="loading-skeleton h-80 rounded-xl" /> }
+);
 import {
   BarChart,
   Bar,
@@ -21,8 +27,8 @@ import {
   LineChart,
   Line,
   AreaChart,
-  Area
-} from "recharts";
+  Area,
+} from "@/components/dashboard/Recharts";
 import {
   BarChart as BarChartIcon,
   Target,
@@ -408,7 +414,7 @@ export default function StatisticsPage() {
                     cy="50%"
                     outerRadius={80}
                     dataKey="count"
-                    label={({ label, percent }) => `${label} ${(percent * 100).toFixed(0)}%`}
+                    label={({ label, percent }) => `${label} ${((percent ?? 0) * 100).toFixed(0)}%`}
                     labelLine={false}
                   >
                     {priorityChartData.map((entry, index) => (

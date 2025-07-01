@@ -1,5 +1,13 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+} from "./Recharts";
 import { CategoryBadge } from "@/components/ui/CategoryBadge";
 import { COMPLAINT_CATEGORIES } from "@/lib/constants";
 import { TrendingUp } from "lucide-react";
@@ -114,9 +122,6 @@ export function CategorySummary({ data }: CategoryStatsProps) {
     prev.totalCount > current.totalCount ? prev : current, data[0]
   );
 
-  const fastestCategory = data.reduce((prev, current) => 
-    prev.avgResolutionTime < current.avgResolutionTime ? prev : current, data[0]
-  );
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">

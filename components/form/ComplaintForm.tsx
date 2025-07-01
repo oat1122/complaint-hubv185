@@ -11,6 +11,7 @@ import { CategorySelector } from "@/components/ui/CategorySelector";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
+import { MAX_FILES } from "@/utils/constants";
 import { 
   Upload, 
   FileText, 
@@ -98,6 +99,10 @@ export default function ComplaintForm() {
   };
 
   const addFiles = (selectedFiles: File[]) => {
+    if (files.length + selectedFiles.length > MAX_FILES) {
+      toast.error(`อัพโหลดได้สูงสุด ${MAX_FILES} ไฟล์`);
+      selectedFiles = selectedFiles.slice(0, MAX_FILES - files.length);
+    }
     const validFiles = selectedFiles.filter(file => {
       // Check file size (5MB limit)
       if (file.size > 5 * 1024 * 1024) {
@@ -147,7 +152,7 @@ export default function ComplaintForm() {
 
   // Camera capture for mobile
   const handleCameraCapture = async () => {
-    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+    if (typeof navigator !== 'undefined' && 'mediaDevices' in navigator) {
       try {
         const input = document.createElement('input');
         input.type = 'file';
@@ -573,7 +578,7 @@ export default function ComplaintForm() {
                   </div>
                   
                   <p className="text-xs text-gray-500 dark:text-gray-400">
-                    รองรับ: JPG, PNG, GIF, PDF, DOC, DOCX (สูงสุด 5MB ต่อไฟล์)
+                    รองรับ: JPG, PNG, GIF, PDF, DOC, DOCX (สูงสุด 5MB ต่อไฟล์ สูงสุด 5 ไฟล์)
                   </p>
                 </div>
               </div>

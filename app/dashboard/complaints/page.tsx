@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
+import dynamic from "next/dynamic";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -13,9 +14,8 @@ import {
   FilterState,
   ComplaintCard,
   LoadingSkeleton,
-  EmptyState,
-  ComplaintDetailModal
-} from "@/components/dashboard/complaints/common";
+  EmptyState
+} from "@/components/dashboard/complaints";
 import {
   Search,
   Filter,
@@ -47,6 +47,10 @@ import {
 import { formatDate, getPriorityColor, getStatusColor, getPriorityLabel, getStatusLabel } from "@/lib/utils";
 import { STATUS_LEVELS, PRIORITY_LEVELS, COMPLAINT_CATEGORIES } from "@/lib/constants";
 
+const ComplaintDetailModal = dynamic(() =>
+  import("@/components/dashboard/complaints").then((mod) => mod.ComplaintDetailModal),
+  { ssr: false }
+);
 
 export default function ComplaintsPage() {
   const router = useRouter();
@@ -94,7 +98,7 @@ export default function ComplaintsPage() {
     }
   }, [searchParams]);
 
-  const fetchComplaints = async () => {
+  const fetchComplaints = useCallback(async () => {
     if (!refreshing) setLoading(true);
     try {
       const params = new URLSearchParams({
@@ -121,9 +125,9 @@ export default function ComplaintsPage() {
       setLoading(false);
       setRefreshing(false);
     }
-  };
+  }, [currentPage, filters, itemsPerPage, refreshing]);
 
-  const openComplaintById = async (id: string) => {
+  const openComplaintById = useCallback(async (id: string) => {
     try {
       const res = await fetch(`/api/admin/complaints/${id}`);
       if (res.ok) {
@@ -133,9 +137,9 @@ export default function ComplaintsPage() {
     } catch (error) {
       console.error('Error fetching complaint details:', error);
     }
-  };
+  }, []);
 
-  const updateComplaintStatus = async (id: string, newStatus: string) => {
+  const updateComplaintStatus = useCallback(async (id: string, newStatus: string) => {
     try {
       const response = await fetch(`/api/admin/complaints/${id}`, {
         method: 'PATCH',
@@ -154,38 +158,38 @@ export default function ComplaintsPage() {
     } catch (error) {
       console.error('Error updating complaint status:', error);
     }
-  };
+  }, [fetchComplaints, selectedComplaint]);
 
-  const handleViewComplaint = async (complaint: Complaint) => {
+  const handleViewComplaint = useCallback(async (complaint: Complaint) => {
     router.push(`/dashboard/complaints?view=${complaint.id}`);
     setSelectedComplaint(complaint);
     await openComplaintById(complaint.id);
-  };
+  }, [openComplaintById, router]);
 
-  const handleRefresh = () => {
+  const handleRefresh = useCallback(() => {
     setRefreshing(true);
     fetchComplaints();
-  };
+  }, [fetchComplaints]);
 
-  const handleFilterChange = (key: keyof FilterState, value: string) => {
+  const handleFilterChange = useCallback((key: keyof FilterState, value: string) => {
     setFilters(prev => ({ ...prev, [key]: value }));
     setCurrentPage(1);
-  };
+  }, []);
 
-  const handleItemsPerPageChange = (value: string) => {
+  const handleItemsPerPageChange = useCallback((value: string) => {
     setItemsPerPage(Number(value));
     setCurrentPage(1);
-  };
+  }, []);
 
-  const handleSort = (column: string) => {
+  const handleSort = useCallback((column: string) => {
     setFilters(prev => ({
       ...prev,
       sortBy: column,
       sortOrder: prev.sortBy === column && prev.sortOrder === 'asc' ? 'desc' : 'asc'
     }));
-  };
+  }, []);
 
-  const clearFilters = () => {
+  const clearFilters = useCallback(() => {
     setFilters({
       search: "",
       status: "all",
@@ -195,7 +199,7 @@ export default function ComplaintsPage() {
       sortOrder: "desc"
     });
     setCurrentPage(1);
-  };
+  }, []);
 
   if (loading && !refreshing) {
     return (

@@ -26,7 +26,22 @@ import {
   Zap
 } from "lucide-react";
 import Link from "next/link";
-import { LineChart, Line, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, BarChart, Bar } from "recharts";
+import {
+  LineChart,
+  Line,
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
+  BarChart,
+  Bar,
+} from "@/components/dashboard/Recharts";
 
 interface DashboardStats {
   totalComplaints: number;
@@ -448,7 +463,7 @@ export default function DashboardPage() {
                     cy="50%"
                     outerRadius={80}
                     dataKey="value"
-                    label={({ displayName, percent }) => `${displayName} ${(percent * 100).toFixed(0)}%`}
+                    label={({ displayName, percent }) => `${displayName} ${((percent ?? 0) * 100).toFixed(0)}%`}
                     labelLine={false}
                   >
                     {categoryData.map((entry, index) => (

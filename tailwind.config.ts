@@ -346,7 +346,7 @@ const config: Config = {
   },
   plugins: [
     require("tailwindcss-animate"),
-    function({ addUtilities, addComponents, theme }) {
+    function({ addUtilities, addComponents, theme }: any) {
       addUtilities({
         '.safe-top': {
           paddingTop: 'max(1rem, env(safe-area-inset-top))',

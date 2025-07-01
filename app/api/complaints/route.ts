@@ -5,9 +5,18 @@ import { sanitizeInput } from '@/utils/sanitize';
 import { writeFile } from 'fs/promises';
 import { join } from 'path';
 import { COMPLAINT_CATEGORIES, PRIORITY_LEVELS } from '@/lib/constants';
+import { MAX_FILES } from '@/utils/constants';
+import { checkRateLimit } from '@/utils/rateLimit';
 
 export async function POST(request: NextRequest) {
   try {
+    const ip = request.headers.get('x-forwarded-for')?.split(',')[0] || 'unknown';
+    if (!checkRateLimit(ip, { limit: 5, interval: 60_000 })) {
+      return NextResponse.json(
+        { error: 'ส่งคำร้องเรียนบ่อยเกินไป กรุณาลองใหม่ภายหลัง' },
+        { status: 429 }
+      );
+    }
     const formData = await request.formData();
     
     const title = formData.get('title') as string;
@@ -15,6 +24,13 @@ export async function POST(request: NextRequest) {
     const category = formData.get('category') as string;
     const priority = formData.get('priority') as string;
     const files = formData.getAll('files') as File[];
+
+    if (files.length > MAX_FILES) {
+      return NextResponse.json(
+        { error: `อัพโหลดได้สูงสุด ${MAX_FILES} ไฟล์` },
+        { status: 400 }
+      );
+    }
 
     // Validate required fields
     if (!title || !description || !category || !priority) {

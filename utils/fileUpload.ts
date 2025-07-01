@@ -1,8 +1,7 @@
 import { writeFile, mkdir } from 'fs/promises';
 import { join } from 'path';
 import { existsSync } from 'fs';
-
-const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+import { MAX_FILE_SIZE, MAX_FILES } from './constants';
 const ALLOWED_MIME_TYPES = [
   'image/jpeg',
   'image/png',
