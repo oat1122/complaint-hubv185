@@ -125,17 +125,6 @@ export default function SignInPage() {
             ← กลับไปหน้าแรก
           </a>
         </div>
-
-        {/* Demo Account Info */}
-        <Card className="mt-6 bg-yellow-50 border-yellow-200">
-          <CardContent className="p-4">
-            <h3 className="font-medium text-yellow-800 mb-2">บัญชีทดสอบ</h3>
-            <div className="text-sm text-yellow-700 space-y-1">
-              <p><strong>Admin:</strong> admin@oat.com / admin123</p>
-              <p><strong>Viewer:</strong> Pna@example.com / Pna123</p>
-            </div>
-          </CardContent>
-        </Card>
       </div>
     </div>
   );
