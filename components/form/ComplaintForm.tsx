@@ -348,7 +348,7 @@ export default function ComplaintForm() {
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="max-w-4xl mx-auto space-y-6 sm:space-y-8">
       {/* Progress Bar - Mobile Friendly */}
-      <div className="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-soft border border-gray-200 dark:border-gray-700 animate-slide-in">
+      <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-xl shadow-soft border border-gray-200 dark:border-gray-700 animate-slide-in">
         <div className="flex items-center justify-between mb-3">
           <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">เปอร์เซ็นต์ความสมบูรณ์ของ form</h3>
           <span className="text-sm text-gray-500 dark:text-gray-400">{getFormProgress()}%</span>
@@ -659,7 +659,7 @@ export default function ComplaintForm() {
       </Card>
 
       {/* Submit Button - Sticky on Mobile */}
-      <div className="sticky bottom-0 bg-white dark:bg-gray-900 p-4 border-t border-gray-200 dark:border-gray-700 safe-bottom -mx-4 lg:mx-0 lg:static lg:bg-transparent lg:dark:bg-transparent lg:border-0 lg:p-0">
+      <div className="sticky bottom-0 bg-gray-50 dark:bg-gray-900 p-4 border-t border-gray-200 dark:border-gray-700 safe-bottom -mx-4 lg:mx-0 lg:static lg:bg-transparent lg:dark:bg-transparent lg:border-0 lg:p-0">
         <Button 
           type="submit" 
           disabled={isSubmitting || getFormProgress() < 75} 

@@ -219,7 +219,7 @@ export default function TrackingPage() {
                   className="input-modern pr-12"
                   disabled={loading}
                 />
-                <div className="absolute right-3 top-3">
+                <div className="absolute right-3 top-1/2 -translate-y-1/2">
                   <QrCode className="w-4 h-4 text-gray-400" />
                 </div>
               </div>

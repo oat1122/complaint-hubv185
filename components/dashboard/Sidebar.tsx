@@ -80,7 +80,7 @@ export function Sidebar({ isMobile = false, isOpen = false, onClose }: SidebarPr
 
         <div
           className={cn(
-            "fixed inset-y-0 left-0 z-50 w-80 bg-white dark:bg-gray-900 shadow-2xl transform transition-transform duration-300 ease-in-out lg:hidden safe-top safe-bottom",
+            "fixed inset-y-0 left-0 z-50 w-80 bg-gray-50 dark:bg-gray-900 shadow-2xl transform transition-transform duration-300 ease-in-out lg:hidden safe-top safe-bottom",
             isOpen ? "translate-x-0" : "-translate-x-full"
           )}
         >
@@ -97,7 +97,7 @@ export function Sidebar({ isMobile = false, isOpen = false, onClose }: SidebarPr
   }
 
   return (
-    <div className="hidden lg:flex lg:flex-col lg:w-64 lg:fixed lg:inset-y-0 bg-white dark:bg-gray-900 shadow-xl border-r border-gray-200 dark:border-gray-800">
+    <div className="hidden lg:flex lg:flex-col lg:w-64 lg:fixed lg:inset-y-0 bg-gray-50 dark:bg-gray-900 shadow-xl border-r border-gray-200 dark:border-gray-800">
       <DesktopSidebarContent
         session={session}
         pathname={pathname}

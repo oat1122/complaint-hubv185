@@ -81,7 +81,7 @@ export default function DashboardLayout({
       />
 
       <div className="lg:pl-64">
-        <header className="lg:hidden bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-4 py-3 safe-top">
+        <header className="lg:hidden bg-gray-50 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 px-4 py-3 safe-top">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
               <MobileNavToggle
@@ -111,7 +111,7 @@ export default function DashboardLayout({
           </div>
         </header>
 
-        <header className="hidden lg:flex bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-4">
+        <header className="hidden lg:flex bg-gray-50 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 px-6 py-4">
           <div className="flex items-center justify-between w-full">
             <div className="flex-1"></div>
 
@@ -152,7 +152,7 @@ export default function DashboardLayout({
         </main>
       </div>
 
-      <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 safe-bottom z-30">
+      <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-gray-50 dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700 safe-bottom z-30">
         <div className="grid grid-cols-4 py-2">
           <a
             href="/dashboard"
@@ -174,7 +174,7 @@ export default function DashboardLayout({
               <svg className="w-full h-full fill-current" viewBox="0 0 24 24">
                 <path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-7 12h-2v-2h2v2zm0-4h-2V6h2v4z"/>
               </svg>
-              <Badge className="absolute -top-1 -right-1 bg-red-500 text-white text-xs min-w-[16px] h-4 flex items-center justify-center p-0">
+              <Badge className="absolute -top-1 -right-1 bg-red-500 text-white text-xs min-w-[16px] h-4 flex items-center justify-center p-0 leading-none rounded-full">
                 5
               </Badge>
             </div>

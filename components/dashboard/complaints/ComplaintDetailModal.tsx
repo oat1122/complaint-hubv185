@@ -74,7 +74,7 @@ export function ComplaintDetailModal({
             ) : (
               <iframe
                 src={previewAttachment.url}
-                className="w-full h-[80vh] rounded-lg bg-white"
+                className="w-full h-[80vh] rounded-lg bg-gray-50 dark:bg-gray-900"
               />
             )}
           </div>
