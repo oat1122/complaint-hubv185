@@ -75,9 +75,16 @@ export default function ComplaintsPage() {
 
   const [itemsPerPage, setItemsPerPage] = useState(10);
 
+  const [debouncedSearch, setDebouncedSearch] = useState(filters.search);
+
+  useEffect(() => {
+    const handler = setTimeout(() => setDebouncedSearch(filters.search), 500);
+    return () => clearTimeout(handler);
+  }, [filters.search]);
+
   useEffect(() => {
     fetchComplaints();
-  }, [currentPage, filters, itemsPerPage]);
+  }, [currentPage, filters.status, filters.category, filters.priority, filters.sortBy, filters.sortOrder, itemsPerPage, debouncedSearch]);
 
   useEffect(() => {
     const handleResize = () => {
@@ -101,7 +108,7 @@ export default function ComplaintsPage() {
   const fetchComplaints = useCallback(async () => {
     if (!refreshing) setLoading(true);
     try {
-      const searchTerm = normalizeSearchQuery(filters.search);
+      const searchTerm = normalizeSearchQuery(debouncedSearch);
 
       const params = new URLSearchParams({
         page: currentPage.toString(),
@@ -127,7 +134,7 @@ export default function ComplaintsPage() {
       setLoading(false);
       setRefreshing(false);
     }
-  }, [currentPage, filters, itemsPerPage, refreshing]);
+  }, [currentPage, filters.status, filters.category, filters.priority, filters.sortBy, filters.sortOrder, itemsPerPage, debouncedSearch, refreshing]);
 
   const openComplaintById = useCallback(async (id: string) => {
     try {
