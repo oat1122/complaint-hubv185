@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useAnalyticsData } from "@/lib/hooks/useAnalyticsData";
 import dynamic from "next/dynamic";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { CategorySummary } from "@/components/dashboard/CategoryStats";
@@ -48,64 +49,21 @@ import {
   Zap
 } from "lucide-react";
 
-interface DashboardStats {
-  overallStats: {
-    totalComplaints: number;
-    totalCategories: number;
-    mostCommonCategory: string;
-    leastCommonCategory: string;
-  };
-  categoryStats: Array<{
-    category: string;
-    totalCount: number;
-    newCount: number;
-    inProgressCount: number;
-    resolvedCount: number;
-    closedCount: number;
-    archivedCount: number;
-    avgResolutionTime: number;
-    resolutionRate: number;
-    monthlyTrends: Record<string, number>;
-  }>;
-}
 
 export default function StatisticsPage() {
-  const [stats, setStats] = useState<DashboardStats | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [timeRange, setTimeRange] = useState('6months');
   const [refreshing, setRefreshing] = useState(false);
   const [lastUpdated, setLastUpdated] = useState<string | null>(null);
-
-  useEffect(() => {
-    fetchCategoryAnalytics();
-  }, [timeRange]);
+  const { data: stats, loading, error, refetch } = useAnalyticsData(timeRange);
 
   useEffect(() => {
     setLastUpdated(new Date().toLocaleDateString('th-TH'));
   }, []);
 
-
-  const fetchCategoryAnalytics = async () => {
-    try {
-      setRefreshing(true);
-      const response = await fetch('/api/admin/analytics/categories');
-      if (!response.ok) {
-        throw new Error('Failed to fetch category analytics');
-      }
-      const data = await response.json();
-      setStats(data);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'เกิดข้อผิดพลาด');
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  };
-
-  const handleRefresh = () => {
+  const handleRefresh = async () => {
     setRefreshing(true);
-    fetchCategoryAnalytics();
+    await refetch();
+    setRefreshing(false);
   };
 
   if (loading) {
@@ -139,7 +97,7 @@ export default function StatisticsPage() {
             <AlertTriangle className="w-16 h-16 text-red-500 mb-4" />
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">เกิดข้อผิดพลาด</h3>
             <p className="text-gray-600 dark:text-gray-400 mb-4 text-center">{error}</p>
-            <Button onClick={fetchCategoryAnalytics} className="tap-target">
+            <Button onClick={() => refetch()} className="tap-target">
               <RefreshCw className="w-4 h-4 mr-2" />
               ลองใหม่
             </Button>
