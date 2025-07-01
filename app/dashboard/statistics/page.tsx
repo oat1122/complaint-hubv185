@@ -1,9 +1,12 @@
 "use client";
 
-import { useState, useEffect, useRef, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import dynamic from "next/dynamic";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { CategorySummary } from "@/components/dashboard/CategoryStats";
+import { useAnalyticsData, DashboardStats } from "@/components/dashboard/useAnalyticsData";
+import { StatCard } from "@/components/dashboard/StatCard";
+import { ChartContainer } from "@/components/dashboard/ChartContainer";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -48,117 +51,60 @@ import {
   Zap
 } from "lucide-react";
 
-interface DashboardStats {
-  overallStats: {
-    totalComplaints: number;
-    totalCategories: number;
-    mostCommonCategory: string;
-    leastCommonCategory: string;
-  };
-  categoryStats: Array<{
-    category: string;
-    totalCount: number;
-    newCount: number;
-    inProgressCount: number;
-    resolvedCount: number;
-    closedCount: number;
-    archivedCount: number;
-    avgResolutionTime: number;
-    resolutionRate: number;
-    monthlyTrends: Record<string, number>;
-  }>;
-}
 
 export default function StatisticsPage() {
-  const [stats, setStats] = useState<DashboardStats | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [timeRange, setTimeRange] = useState('6months');
   const [refreshing, setRefreshing] = useState(false);
   const [lastUpdated, setLastUpdated] = useState<string | null>(null);
-  const statsCache = useRef<Record<string, DashboardStats>>({});
+
+  const { data: stats, loading, error, refetch } = useAnalyticsData(timeRange);
 
   useEffect(() => {
-    setLoading(true);
-    fetchCategoryAnalytics();
-  }, [timeRange]);
-
-  useEffect(() => {
-    setLastUpdated(new Date().toLocaleDateString('th-TH'));
-  }, []);
-
-
-  const fetchCategoryAnalytics = async () => {
-    const cached = statsCache.current[timeRange];
-    if (cached) {
-      setStats(cached);
-      setLoading(false);
-      setRefreshing(false);
-      return;
+    if (stats && !lastUpdated) {
+      setLastUpdated(new Date().toLocaleDateString('th-TH'));
     }
-    try {
-      setRefreshing(true);
-      const response = await fetch(`/api/admin/analytics/categories?range=${timeRange}`);
-      if (!response.ok) {
-        throw new Error('Failed to fetch category analytics');
-      }
-      const data = await response.json();
-      setStats(data);
-      statsCache.current[timeRange] = data;
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'เกิดข้อผิดพลาด');
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  };
+  }, [stats, lastUpdated]);
 
-  const handleRefresh = () => {
+  const handleRefresh = async () => {
     setRefreshing(true);
-    setLoading(true);
-    fetchCategoryAnalytics();
+    await refetch();
+    setRefreshing(false);
+    setLastUpdated(new Date().toLocaleDateString('th-TH'));
   };
 
-  const priorityData = useMemo(() => {
-    if (!stats) return {};
-    return stats.categoryStats.reduce((acc: Record<string, number>, item) => {
+  const processedData = useMemo(() => {
+    if (!stats) return null;
+
+    const priorityData = stats.categoryStats.reduce((acc: Record<string, number>, item) => {
       acc['HIGH'] = (acc['HIGH'] || 0) + Math.floor(item.totalCount * 0.2);
       acc['MEDIUM'] = (acc['MEDIUM'] || 0) + Math.floor(item.totalCount * 0.5);
       acc['LOW'] = (acc['LOW'] || 0) + Math.floor(item.totalCount * 0.3);
       return acc;
     }, {});
-  }, [stats]);
 
-  const priorityChartData = useMemo(() =>
-    Object.entries(priorityData).map(([priority, count]) => ({
+    const priorityChartData = Object.entries(priorityData).map(([priority, count]) => ({
       priority,
       count,
       label: PRIORITY_LEVELS.find(p => p.value === priority)?.label || priority,
       color: priority === 'HIGH' ? '#ef4444' : priority === 'MEDIUM' ? '#f59e0b' : '#10b981'
-    })), [priorityData]);
+    }));
 
-  const monthlyTrendData = useMemo(() => {
-    if (!stats) return {};
-    return stats.categoryStats.reduce((acc: Record<string, number>, item) => {
+    const monthlyTrendData = stats.categoryStats.reduce((acc: Record<string, number>, item) => {
       Object.entries(item.monthlyTrends).forEach(([month, count]) => {
         acc[month] = (acc[month] || 0) + count;
       });
       return acc;
     }, {});
-  }, [stats]);
 
-  const trendChartData = useMemo(() =>
-    Object.entries(monthlyTrendData)
+    const trendChartData = Object.entries(monthlyTrendData)
       .sort(([a], [b]) => a.localeCompare(b))
       .map(([month, count]) => ({
         month,
         count,
-        monthLabel: new Date(month + '-01').toLocaleDateString('th-TH', { year: 'numeric', month: 'short' }),
-      })), [monthlyTrendData]);
+        monthLabel: new Date(month + '-01').toLocaleDateString('th-TH', { year: 'numeric', month: 'short' })
+      }));
 
-  const categoryPerformanceData = useMemo(() =>
-    !stats ? [] :
-    stats.categoryStats
+    const categoryPerformanceData = stats.categoryStats
       .map(item => {
         const categoryInfo = COMPLAINT_CATEGORIES.find(c => c.value === item.category);
         return {
@@ -170,11 +116,9 @@ export default function StatisticsPage() {
           pending: item.totalCount - item.resolvedCount
         };
       })
-      .sort((a, b) => b.total - a.total), [stats]);
+      .sort((a, b) => b.total - a.total);
 
-  const resolutionTimeData = useMemo(() =>
-    !stats ? [] :
-    stats.categoryStats
+    const resolutionTimeData = stats.categoryStats
       .filter(item => item.avgResolutionTime > 0)
       .map(item => {
         const categoryInfo = COMPLAINT_CATEGORIES.find(c => c.value === item.category);
@@ -185,17 +129,30 @@ export default function StatisticsPage() {
         };
       })
       .sort((a, b) => a.time - b.time)
-      .slice(0, 8), [stats]);
+      .slice(0, 8);
 
-  const totalResolved = useMemo(() =>
-    stats ? stats.categoryStats.reduce((sum, item) => sum + item.resolvedCount, 0) : 0, [stats]);
-  const totalComplaints = stats.overallStats.totalComplaints;
-  const overallResolutionRate = useMemo(() =>
-    totalComplaints > 0 ? Math.round((totalResolved / totalComplaints) * 100) : 0, [totalResolved, totalComplaints]);
-  const avgResolutionTime = useMemo(() =>
-    stats && stats.categoryStats.length > 0
+    const totalResolved = stats.categoryStats.reduce((sum, item) => sum + item.resolvedCount, 0);
+    const totalComplaints = stats.overallStats.totalComplaints;
+    const overallResolutionRate = totalComplaints > 0 ? Math.round((totalResolved / totalComplaints) * 100) : 0;
+    const avgResolutionTime = stats.categoryStats.length > 0
       ? Math.round(stats.categoryStats.reduce((sum, item) => sum + item.avgResolutionTime, 0) / stats.categoryStats.length)
-      : 0, [stats]);
+      : 0;
+
+    return {
+      priorityChartData,
+      trendChartData,
+      categoryPerformanceData,
+      resolutionTimeData,
+      overallMetrics: { overallResolutionRate, avgResolutionTime }
+    };
+  }, [stats]);
+
+  const priorityChartData = processedData?.priorityChartData ?? [];
+  const trendChartData = processedData?.trendChartData ?? [];
+  const categoryPerformanceData = processedData?.categoryPerformanceData ?? [];
+  const resolutionTimeData = processedData?.resolutionTimeData ?? [];
+  const overallResolutionRate = processedData?.overallMetrics.overallResolutionRate ?? 0;
+  const avgResolutionTime = processedData?.overallMetrics.avgResolutionTime ?? 0;
 
   const COLORS = ['#ab1616', '#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#ef4444', '#06b6d4', '#84cc16'];
 
@@ -230,7 +187,7 @@ export default function StatisticsPage() {
             <AlertTriangle className="w-16 h-16 text-red-500 mb-4" />
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">เกิดข้อผิดพลาด</h3>
             <p className="text-gray-600 dark:text-gray-400 mb-4 text-center">{error}</p>
-            <Button onClick={fetchCategoryAnalytics} className="tap-target">
+            <Button onClick={refetch} className="tap-target">
               <RefreshCw className="w-4 h-4 mr-2" />
               ลองใหม่
             </Button>
@@ -300,103 +257,52 @@ export default function StatisticsPage() {
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-        <Card className="card-modern">
-          <CardContent className="p-4 sm:p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">เรื่องร้องเรียนทั้งหมด</p>
-                <p className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">
-                  {stats.overallStats.totalComplaints.toLocaleString()}
-                </p>
-                <p className="text-xs text-green-600 dark:text-green-400 flex items-center mt-1">
-                  <TrendingUp className="w-3 h-3 mr-1" />
-                  +12% จากเดือนที่แล้ว
-                </p>
-              </div>
-              <div className="p-3 bg-gradient-primary rounded-xl">
-                <BarChartIcon className="w-6 h-6 text-white" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="card-modern">
-          <CardContent className="p-4 sm:p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">อัตราการแก้ไข</p>
-                <p className="text-2xl sm:text-3xl font-bold text-green-600">
-                  {overallResolutionRate}%
-                </p>
-                <p className="text-xs text-green-600 flex items-center mt-1">
-                  <TrendingUp className="w-3 h-3 mr-1" />
-                  +5% จากเดือนที่แล้ว
-                </p>
-              </div>
-              <div className="p-3 bg-gradient-success rounded-xl">
-                <Target className="w-6 h-6 text-white" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="card-modern">
-          <CardContent className="p-4 sm:p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">เวลาแก้ไขเฉลี่ย</p>
-                <p className="text-2xl sm:text-3xl font-bold text-blue-600">
-                  {avgResolutionTime}
-                </p>
-                <p className="text-xs text-blue-600">ชั่วโมง</p>
-              </div>
-              <div className="p-3 bg-gradient-info rounded-xl">
-                <Clock className="w-6 h-6 text-white" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="card-modern">
-          <CardContent className="p-4 sm:p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">ประเภทยอดนิยม</p>
-                <div className="mt-2">
-                  <Badge variant="secondary" className="text-xs">
-                    {COMPLAINT_CATEGORIES.find(c => c.value === stats.overallStats.mostCommonCategory)?.label || 'ไม่ระบุ'}
-                  </Badge>
-                </div>
-                <p className="text-xs text-gray-500 mt-1">มากที่สุด</p>
-              </div>
-              <div className="p-3 bg-gradient-warning rounded-xl">
-                <Award className="w-6 h-6 text-white" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        <StatCard
+          title="เรื่องร้องเรียนทั้งหมด"
+          value={stats.overallStats.totalComplaints.toLocaleString()}
+          icon={BarChartIcon}
+          iconClass="bg-gradient-primary"
+          description={<span className="text-xs text-green-600 dark:text-green-400 flex items-center mt-1"><TrendingUp className="w-3 h-3 mr-1" />+12% จากเดือนที่แล้ว</span>}
+        />
+        <StatCard
+          title="อัตราการแก้ไข"
+          value={<span className="text-green-600">{overallResolutionRate}%</span>}
+          icon={Target}
+          iconClass="bg-gradient-success"
+          description={<span className="text-xs text-green-600 flex items-center mt-1"><TrendingUp className="w-3 h-3 mr-1" />+5% จากเดือนที่แล้ว</span>}
+        />
+        <StatCard
+          title="เวลาแก้ไขเฉลี่ย"
+          value={<span className="text-blue-600">{avgResolutionTime}</span>}
+          icon={Clock}
+          iconClass="bg-gradient-info"
+          description={<span className="text-xs text-blue-600">ชั่วโมง</span>}
+        />
+        <StatCard
+          title="ประเภทยอดนิยม"
+          value={<Badge variant="secondary" className="text-xs">{COMPLAINT_CATEGORIES.find(c => c.value === stats.overallStats.mostCommonCategory)?.label || 'ไม่ระบุ'}</Badge>}
+          icon={Award}
+          iconClass="bg-gradient-warning"
+          description={<span className="text-xs text-gray-500">มากที่สุด</span>}
+        />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
-        <Card className="card-modern">
-          <CardHeader>
-            <CardTitle className="flex items-center space-x-2">
-              <TrendingUp className="w-5 h-5 text-primary" />
-              <span>แนวโน้มรายเดือน</span>
-            </CardTitle>
-            <CardDescription>จำนวนเรื่องร้องเรียนในช่วง {timeRange === '6months' ? '6 เดือน' : timeRange === '1year' ? '1 ปี' : timeRange} ที่ผ่านมา</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="h-64 sm:h-80">
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={trendChartData}>
-                  <defs>
-                    <linearGradient id="colorTrend" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#ab1616" stopOpacity={0.3} />
-                      <stop offset="95%" stopColor="#ab1616" stopOpacity={0} />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+        <ChartContainer
+          title={<><TrendingUp className="w-5 h-5 text-primary" /> แนวโน้มรายเดือน</>}
+          description={`จำนวนเรื่องร้องเรียนในช่วง ${timeRange === '6months' ? '6 เดือน' : timeRange === '1year' ? '1 ปี' : timeRange} ที่ผ่านมา`}
+          loading={loading}
+        >
+          <div className="h-64 sm:h-80">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={trendChartData}>
+                <defs>
+                  <linearGradient id="colorTrend" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#ab1616" stopOpacity={0.3} />
+                    <stop offset="95%" stopColor="#ab1616" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
                   <XAxis
                     dataKey="monthLabel"
                     tick={{ fontSize: 12 }}
@@ -421,31 +327,26 @@ export default function StatisticsPage() {
                     stroke="#ab1616"
                     strokeWidth={3}
                     fillOpacity={1}
-                    fill="url(#colorTrend)"
-                  />
-                </AreaChart>
-              </ResponsiveContainer>
-            </div>
-          </CardContent>
-        </Card>
+                  fill="url(#colorTrend)"
+                />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
+        </ChartContainer>
 
-        <Card className="card-modern">
-          <CardHeader>
-            <CardTitle className="flex items-center space-x-2">
-              <AlertTriangle className="w-5 h-5 text-primary" />
-              <span>การแจกแจงตามความสำคัญ</span>
-            </CardTitle>
-            <CardDescription>สัดส่วนเรื่องร้องเรียนแต่ละระดับความสำคัญ</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="h-64 sm:h-80">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={priorityChartData}
-                    cx="50%"
-                    cy="50%"
-                    outerRadius={80}
+        <ChartContainer
+          title={<><AlertTriangle className="w-5 h-5 text-primary" /> การแจกแจงตามความสำคัญ</>}
+          description="สัดส่วนเรื่องร้องเรียนแต่ละระดับความสำคัญ"
+          loading={loading}
+        >
+          <div className="h-64 sm:h-80">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={priorityChartData}
+                  cx="50%"
+                  cy="50%"
+                  outerRadius={80}
                     dataKey="count"
                     label={({ label, percent }) => `${label} ${((percent ?? 0) * 100).toFixed(0)}%`}
                     labelLine={false}
@@ -466,27 +367,22 @@ export default function StatisticsPage() {
                 </PieChart>
               </ResponsiveContainer>
             </div>
-          </CardContent>
-        </Card>
+        </ChartContainer>
       </div>
 
-      <Card className="card-modern">
-        <CardHeader>
-          <CardTitle className="flex items-center space-x-2">
-            <Activity className="w-5 h-5 text-primary" />
-            <span>ประสิทธิภาพการแก้ไขตามประเภท</span>
-          </CardTitle>
-          <CardDescription>เปรียบเทียบจำนวนเรื่องทั้งหมดและจำนวนที่แก้ไขแล้วแต่ละประเภท</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="h-80 sm:h-96">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={categoryPerformanceData} margin={{ top: 20, right: 30, left: 20, bottom: 60 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                <XAxis
-                  dataKey="name"
-                  tick={{ fontSize: 11 }}
-                  angle={-45}
+      <ChartContainer
+        title={<><Activity className="w-5 h-5 text-primary" /> ประสิทธิภาพการแก้ไขตามประเภท</>}
+        description="เปรียบเทียบจำนวนเรื่องทั้งหมดและจำนวนที่แก้ไขแล้วแต่ละประเภท"
+        loading={loading}
+      >
+        <div className="h-80 sm:h-96">
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={categoryPerformanceData} margin={{ top: 20, right: 30, left: 20, bottom: 60 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+              <XAxis
+                dataKey="name"
+                tick={{ fontSize: 11 }}
+                angle={-45}
                   textAnchor="end"
                   height={80}
                   interval={0}
@@ -513,27 +409,22 @@ export default function StatisticsPage() {
               </BarChart>
             </ResponsiveContainer>
           </div>
-        </CardContent>
-      </Card>
+      </ChartContainer>
 
-      <Card className="card-modern">
-        <CardHeader>
-          <CardTitle className="flex items-center space-x-2">
-            <Zap className="w-5 h-5 text-primary" />
-            <span>เปรียบเทียบเวลาในการแก้ไข</span>
-          </CardTitle>
-          <CardDescription>เวลาเฉลี่ยในการแก้ไขปัญหาแต่ละประเภท (ชั่วโมง)</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="h-64 sm:h-80">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={resolutionTimeData} layout="horizontal" margin={{ top: 20, right: 30, left: 60, bottom: 5 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                <XAxis type="number" tick={{ fontSize: 12 }} />
-                <YAxis dataKey="category" type="category" tick={{ fontSize: 11 }} width={80} />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: 'white',
+      <ChartContainer
+        title={<><Zap className="w-5 h-5 text-primary" /> เปรียบเทียบเวลาในการแก้ไข</>}
+        description="เวลาเฉลี่ยในการแก้ไขปัญหาแต่ละประเภท (ชั่วโมง)"
+        loading={loading}
+      >
+        <div className="h-64 sm:h-80">
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={resolutionTimeData} layout="horizontal" margin={{ top: 20, right: 30, left: 60, bottom: 5 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+              <XAxis type="number" tick={{ fontSize: 12 }} />
+              <YAxis dataKey="category" type="category" tick={{ fontSize: 11 }} width={80} />
+              <Tooltip
+                contentStyle={{
+                  backgroundColor: 'white',
                     border: '1px solid #e5e7eb',
                     borderRadius: '12px',
                     boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)'
@@ -544,8 +435,7 @@ export default function StatisticsPage() {
               </BarChart>
             </ResponsiveContainer>
           </div>
-        </CardContent>
-      </Card>
+      </ChartContainer>
 
       <CategorySummary data={stats.categoryStats} />
       <CategoryStats data={stats.categoryStats} />
