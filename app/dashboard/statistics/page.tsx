@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { COMPLAINT_CATEGORIES, PRIORITY_LEVELS } from "@/lib/constants";
+import { PerformanceTable } from "@/components/dashboard/PerformanceTable";
 
 const CategoryStats = dynamic(() =>
   import("@/components/dashboard/CategoryStats").then((mod) => mod.CategoryStats),
@@ -567,71 +568,7 @@ export default function StatisticsPage() {
           <CardDescription>ข้อมูลรายละเอียดการแก้ไขปัญหาแต่ละประเภท</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-gray-200 dark:border-gray-700">
-                  <th className="text-left p-3 font-medium">ประเภท</th>
-                  <th className="text-right p-3 font-medium">ทั้งหมด</th>
-                  <th className="text-right p-3 font-medium">ใหม่</th>
-                  <th className="text-right p-3 font-medium">กำลังดำเนินการ</th>
-                  <th className="text-right p-3 font-medium">แก้ไขแล้ว</th>
-                  <th className="text-right p-3 font-medium">อัตราการแก้ไข</th>
-                  <th className="text-right p-3 font-medium">เวลาเฉลี่ย (ชม.)</th>
-                  <th className="text-center p-3 font-medium">ประสิทธิภาพ</th>
-                </tr>
-              </thead>
-              <tbody>
-                {stats.categoryStats
-                  .sort((a, b) => b.resolutionRate - a.resolutionRate)
-                  .map((item) => {
-                    const categoryInfo = COMPLAINT_CATEGORIES.find(c => c.value === item.category);
-                    const performanceScore = Math.round((item.resolutionRate + (100 - Math.min(item.avgResolutionTime / 24 * 100, 100))) / 2);
-
-                    return (
-                      <tr key={item.category} className="border-b border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
-                        <td className="p-3">
-                          <div className="flex items-center space-x-2">
-                            {categoryInfo && <categoryInfo.icon className="w-4 h-4" />}
-                            <span className="font-medium">{categoryInfo?.label || item.category}</span>
-                          </div>
-                        </td>
-                        <td className="text-right p-3 font-semibold">{item.totalCount}</td>
-                        <td className="text-right p-3 text-blue-600">{item.newCount}</td>
-                        <td className="text-right p-3 text-yellow-600">{item.inProgressCount}</td>
-                        <td className="text-right p-3 text-green-600">{item.resolvedCount}</td>
-                        <td className="text-right p-3">
-                          <span className={`font-semibold ${
-                            item.resolutionRate > 80 ? 'text-green-600' :
-                            item.resolutionRate > 60 ? 'text-yellow-600' : 'text-red-600'
-                          }`}>
-                            {item.resolutionRate}%
-                          </span>
-                        </td>
-                        <td className="text-right p-3">
-                          <span className={`${
-                            item.avgResolutionTime < 24 ? 'text-green-600' :
-                            item.avgResolutionTime < 72 ? 'text-yellow-600' : 'text-red-600'
-                          }`}>
-                            {Math.round(item.avgResolutionTime)}
-                          </span>
-                        </td>
-                        <td className="text-center p-3">
-                          <div className="flex items-center justify-center">
-                            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white ${
-                              performanceScore > 80 ? 'bg-green-500' :
-                              performanceScore > 60 ? 'bg-yellow-500' : 'bg-red-500'
-                            }`}>
-                              {performanceScore}
-                            </div>
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  })}
-              </tbody>
-            </table>
-          </div>
+          <PerformanceTable data={stats.categoryStats} />
         </CardContent>
       </Card>
 
