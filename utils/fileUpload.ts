@@ -44,7 +44,7 @@ async function scanForMalware(file: File): Promise<void> {
   if (!host) return;
   const port = parseInt(process.env.CLAMAV_PORT || '3310', 10);
   const scanner = clamav.createScanner(port, host);
-  const stream = Readable.fromWeb(file.stream());
+  const stream = Readable.fromWeb(file.stream() as any) as any;
   await new Promise<void>((resolve, reject) => {
     scanner.scan(stream, (err: any, _file: any, malicious: any) => {
       if (err) return reject(err);
