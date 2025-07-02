@@ -98,7 +98,7 @@ export default function ComplaintsPage() {
   }, [viewMode]);
 
   useEffect(() => {
-    const id = searchParams.get('view');
+    const id = searchParams?.get('view');
     if (id) {
       openComplaintById(id);
     }
