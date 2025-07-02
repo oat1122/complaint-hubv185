@@ -11,7 +11,7 @@ import { checkRateLimit } from '@/utils/rateLimit';
 export async function POST(request: NextRequest) {
   try {
     const ip = request.headers.get('x-forwarded-for')?.split(',')[0] || 'unknown';
-    if (!checkRateLimit(ip, { limit: 5, interval: 60_000 })) {
+    if (!(await checkRateLimit(ip, { limit: 5, interval: 60_000 }))) {
       return NextResponse.json(
         { error: 'ส่งคำร้องเรียนบ่อยเกินไป กรุณาลองใหม่ภายหลัง' },
         { status: 429 }
@@ -86,7 +86,7 @@ export async function POST(request: NextRequest) {
           const buffer = Buffer.from(bytes);
 
           // Create upload directory if it doesn't exist
-          const uploadDir = join(process.cwd(), 'public', 'uploads');
+          const uploadDir = join(process.cwd(), 'uploads');
           
           // Generate unique filename
           const timestamp = Date.now();
@@ -168,6 +168,12 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    // Build secure attachment URLs
+    const attachments = complaint.attachments.map(att => ({
+      ...att,
+      url: `/api/files/${att.id}?trackingId=${complaint.trackingId}`
+    }));
+
     // Return complaint data without sensitive information
     return NextResponse.json({
       id: complaint.id,
@@ -179,7 +185,7 @@ export async function GET(request: NextRequest) {
       trackingId: complaint.trackingId,
       createdAt: complaint.createdAt,
       updatedAt: complaint.updatedAt,
-      attachments: complaint.attachments,
+      attachments,
     });
 
   } catch (error) {

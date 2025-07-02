@@ -88,10 +88,18 @@ export async function GET(request: NextRequest) {
       prisma.complaint.count({ where }),
     ]);
 
+    const sanitized = complaints.map(c => ({
+      ...c,
+      attachments: c.attachments.map(a => ({
+        ...a,
+        url: `/api/files/${a.id}`
+      }))
+    }));
+
     const totalPages = Math.ceil(totalCount / limitNumber);
 
     return NextResponse.json({
-      complaints,
+      complaints: sanitized,
       pagination: {
         page: pageNumber,
         limit: limitNumber,
