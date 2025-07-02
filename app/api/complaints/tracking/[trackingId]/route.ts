@@ -31,7 +31,12 @@ export async function GET(
       );
     }
 
-    return NextResponse.json(complaint);
+    const attachments = complaint.attachments.map(att => ({
+      ...att,
+      url: `/api/files/${att.id}?trackingId=${complaint.trackingId}`
+    }));
+
+    return NextResponse.json({ ...complaint, attachments });
   } catch (error) {
     console.error('Error fetching complaint by trackingId:', error);
     return NextResponse.json(

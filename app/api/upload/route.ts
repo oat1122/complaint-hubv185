@@ -55,7 +55,10 @@ export async function POST(request: NextRequest) {
           complaintId
         }
       });
-      uploaded.push(attachment);
+      uploaded.push({
+        ...attachment,
+        url: `/api/files/${attachment.id}`
+      });
     }
 
     return NextResponse.json({ success: true, attachments: uploaded });

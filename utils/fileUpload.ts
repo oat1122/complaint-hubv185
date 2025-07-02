@@ -61,7 +61,7 @@ export function validateFile(file: File): FileValidationResult {
 }
 
 export async function saveFile(file: File, complaintId: string): Promise<string> {
-  const uploadDir = join(process.cwd(), 'public', 'uploads');
+  const uploadDir = join(process.cwd(), 'uploads');
 
   if (!existsSync(uploadDir)) {
     await mkdir(uploadDir, { recursive: true });

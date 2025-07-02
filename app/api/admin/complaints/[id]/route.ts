@@ -66,9 +66,17 @@ export async function PATCH(
     });
 
 
+    const sanitized = {
+      ...updatedComplaint,
+      attachments: updatedComplaint.attachments.map(a => ({
+        ...a,
+        url: `/api/files/${a.id}`
+      }))
+    };
+
     return NextResponse.json({
       success: true,
-      complaint: updatedComplaint,
+      complaint: sanitized,
       message: 'อัปเดตข้อร้องเรียนเรียบร้อยแล้ว',
     });
 
@@ -120,7 +128,15 @@ export async function GET(
       );
     }
 
-    return NextResponse.json(complaint);
+    const sanitized = {
+      ...complaint,
+      attachments: complaint.attachments.map(a => ({
+        ...a,
+        url: `/api/files/${a.id}`
+      }))
+    };
+
+    return NextResponse.json(sanitized);
 
   } catch (error) {
     console.error('Error fetching complaint:', error);
