@@ -1,6 +1,8 @@
 import { writeFile, mkdir } from 'fs/promises';
 import { join } from 'path';
 import { existsSync } from 'fs';
+import { Readable } from 'stream';
+import clamav from 'clamav.js';
 import { MAX_FILE_SIZE, MAX_FILES } from './constants';
 const ALLOWED_MIME_TYPES = [
   'image/jpeg',
@@ -22,7 +24,37 @@ export interface FileValidationResult {
   error?: string;
 }
 
-export function validateFile(file: File): FileValidationResult {
+const MAGIC_BYTES: Record<string, number[]> = {
+  'image/jpeg': [0xff, 0xd8, 0xff],
+  'image/png': [0x89, 0x50, 0x4e, 0x47],
+  'image/gif': [0x47, 0x49, 0x46, 0x38],
+  'application/pdf': [0x25, 0x50, 0x44, 0x46]
+};
+
+async function verifyMagicBytes(file: File): Promise<boolean> {
+  const expected = MAGIC_BYTES[file.type];
+  if (!expected) return true;
+  const slice = file.slice(0, expected.length);
+  const bytes = new Uint8Array(await slice.arrayBuffer());
+  return expected.every((b, i) => bytes[i] === b);
+}
+
+async function scanForMalware(file: File): Promise<void> {
+  const host = process.env.CLAMAV_HOST;
+  if (!host) return;
+  const port = parseInt(process.env.CLAMAV_PORT || '3310', 10);
+  const scanner = clamav.createScanner(port, host);
+  const stream = Readable.fromWeb(file.stream());
+  await new Promise<void>((resolve, reject) => {
+    scanner.scan(stream, (err: any, _file: any, malicious: any) => {
+      if (err) return reject(err);
+      if (malicious) return reject(new Error(malicious));
+      resolve();
+    });
+  });
+}
+
+export async function validateFile(file: File): Promise<FileValidationResult> {
   if (file.size > MAX_FILE_SIZE) {
     return {
       isValid: false,
@@ -54,6 +86,23 @@ export function validateFile(file: File): FileValidationResult {
     return {
       isValid: false,
       error: `ไฟล์ ${file.name} อาจเป็นอันตราย`
+    };
+  }
+
+  const magicOk = await verifyMagicBytes(file);
+  if (!magicOk) {
+    return {
+      isValid: false,
+      error: `ไฟล์ ${file.name} ไม่ตรงกับประเภทที่ระบุ`
+    };
+  }
+
+  try {
+    await scanForMalware(file);
+  } catch (err) {
+    return {
+      isValid: false,
+      error: 'ไฟล์ไม่ผ่านการสแกนมัลแวร์'
     };
   }
 

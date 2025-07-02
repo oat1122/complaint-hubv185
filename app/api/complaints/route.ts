@@ -11,7 +11,7 @@ import { checkRateLimit } from '@/utils/rateLimit';
 export async function POST(request: NextRequest) {
   try {
     const ip = request.headers.get('x-forwarded-for')?.split(',')[0] || 'unknown';
-    if (!checkRateLimit(ip, { limit: 5, interval: 60_000 })) {
+    if (!(await checkRateLimit(ip, { limit: 5, interval: 60_000 }))) {
       return NextResponse.json(
         { error: 'ส่งคำร้องเรียนบ่อยเกินไป กรุณาลองใหม่ภายหลัง' },
         { status: 429 }

@@ -37,7 +37,7 @@ export async function POST(request: NextRequest) {
 
     for (const file of files) {
       if (file.size === 0) continue;
-      const validation = validateFile(file);
+      const validation = await validateFile(file);
       if (!validation.isValid) {
         return NextResponse.json(
           { error: validation.error },
