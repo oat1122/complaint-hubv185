@@ -56,7 +56,7 @@ interface SidebarProps {
 
 export function Sidebar({ isMobile = false, isOpen = false, onClose }: SidebarProps) {
   const { data: session } = useSession();
-  const pathname = usePathname();
+  const pathname = usePathname() ?? "";
 
   const handleSignOut = () => {
     signOut({ callbackUrl: "/" });
