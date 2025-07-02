@@ -2,6 +2,7 @@ import { writeFile, mkdir } from 'fs/promises';
 import { join } from 'path';
 import { existsSync } from 'fs';
 import { Readable } from 'stream';
+import type { ReadableStream as NodeReadableStream } from 'stream/web';
 import clamav from 'clamav.js';
 import { MAX_FILE_SIZE, MAX_FILES } from './constants';
 const ALLOWED_MIME_TYPES = [
@@ -44,7 +45,9 @@ async function scanForMalware(file: File): Promise<void> {
   if (!host) return;
   const port = parseInt(process.env.CLAMAV_PORT || '3310', 10);
   const scanner = clamav.createScanner(port, host);
-  const stream = Readable.fromWeb(file.stream() as any) as any;
+  const stream = Readable.fromWeb(
+    file.stream() as unknown as NodeReadableStream
+  );
   await new Promise<void>((resolve, reject) => {
     scanner.scan(stream, (err: any, _file: any, malicious: any) => {
       if (err) return reject(err);
