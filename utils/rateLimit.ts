@@ -1,11 +1,27 @@
+import Redis from 'ioredis';
+
 export interface RateLimitOptions {
   limit: number;
   interval: number; // milliseconds
 }
 
+const redisUrl = process.env.REDIS_URL;
+const redis = redisUrl ? new Redis(redisUrl) : null;
+
 const counters = new Map<string, { count: number; timestamp: number }>();
 
-export function checkRateLimit(key: string, options: RateLimitOptions): boolean {
+export async function checkRateLimit(
+  key: string,
+  options: RateLimitOptions
+): Promise<boolean> {
+  if (redis) {
+    const count = await redis.incr(key);
+    if (count === 1) {
+      await redis.pexpire(key, options.interval);
+    }
+    return count <= options.limit;
+  }
+
   const now = Date.now();
   const entry = counters.get(key);
   if (!entry) {
